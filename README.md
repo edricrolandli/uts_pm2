@@ -1,17 +1,26 @@
-# uts_pm2
+# [nama apps]
 
-A new Flutter project.
+Aplikasi kuis pilihan ganda materi Lab Basis Data (Flutter).
 
-## Getting Started
+## Identitas
+- Nama: Edric Roland Li
+- NIM: 241401079
+- Lab: PM 2
 
-This project is a starting point for a Flutter application.
+## Info Aplikasi
+- Deskripsi: [placeholder]
+- Fitur: [placeholder]
 
-A few resources to get you started if this is your first Flutter project:
+## Dokumentasi
+### Kredit Aset
+| Aset | Sumber | Lisensi |
+|---|---|---|
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+### Screenshot
+[placeholder]
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+### Mockup / Prototype
+Link: [placeholder]
+
+## Materi Presentasi
+[placeholder]
