@@ -5,7 +5,10 @@ import 'question.dart';
 class SessionQuestion {
   SessionQuestion({required this.question, required List<int> optionOrder})
     : optionOrder = List.unmodifiable(optionOrder) {
-    if (optionOrder.length != 4 ||
+    if (question.options.length != 4 ||
+        question.correctIndex < 0 ||
+        question.correctIndex > 3 ||
+        optionOrder.length != 4 ||
         optionOrder.toSet().length != 4 ||
         optionOrder.any((index) => index < 0 || index > 3)) {
       throw const FormatException('Urutan opsi harus permutasi 0..3.');
