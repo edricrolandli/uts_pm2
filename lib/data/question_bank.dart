@@ -144,4 +144,198 @@ const List<Question> kQuestionBank = [
         'ALTER TABLE dengan ADD COLUMN menambahkan kolom ke tabel '
         'yang sudah ada. Baris lama mendapatkan NULL karena tidak ada DEFAULT.',
   ),
+  // DML dasar: q09–q11. Setiap soal menggunakan data awalnya sendiri.
+  Question(
+    id: 'q09',
+    text:
+        'Tabel satwa berisi 4 baris dengan id_satwa 1–4. Kandang 2 tersedia '
+        'dan tidak ada constraint lain yang menghalangi. Berapa jumlah baris '
+        'satwa setelah perintah ini berhasil?',
+    codeSnippet: '''INSERT INTO satwa (id_satwa, nama, id_kandang, berat)
+VALUES (5, 'Suri', 2, 60);''',
+    options: ['5 baris', '4 baris', '1 baris', '0 baris'],
+    correctIndex: 0,
+    explanation:
+        'INSERT menambahkan satu baris baru. Empat baris awal tetap '
+        'ada sehingga jumlahnya menjadi lima.',
+  ),
+  Question(
+    id: 'q10',
+    text:
+        'Berat empat satwa adalah 120, 80, 200, dan 50. '
+        'Berapa baris yang diubah oleh perintah berikut?',
+    codeSnippet: 'UPDATE satwa SET berat = berat + 10 WHERE berat < 100;',
+    options: ['1 baris', '2 baris', '3 baris', '4 baris'],
+    correctIndex: 1,
+    explanation:
+        'Hanya berat 80 dan 50 memenuhi WHERE berat < 100. '
+        'Keduanya berubah menjadi 90 dan 60.',
+  ),
+  Question(
+    id: 'q11',
+    text:
+        'Empat baris satwa memiliki id_satwa 1, 2, 3, dan 4. '
+        'Tidak ada foreign key dari tabel lain yang menghalangi penghapusan. '
+        'Baris mana yang tersisa setelah perintah berikut?',
+    codeSnippet: 'DELETE FROM satwa WHERE id_satwa = 4;',
+    options: [
+      'Hanya id_satwa 4',
+      'Tidak ada baris',
+      'id_satwa 1, 2, dan 3',
+      'Semua id_satwa 1–4',
+    ],
+    correctIndex: 2,
+    explanation:
+        'DELETE menghapus baris yang memenuhi kondisi WHERE. '
+        'Baris dengan ID selain 4 tetap tersimpan.',
+  ),
+  // JOIN: q12–q14.
+  Question(
+    id: 'q12',
+    text:
+        'Satwa Raka dan Nala berada di kandang 1, Bimo di kandang 2, '
+        'sedangkan Lilo memiliki id_kandang NULL. Tabel kandang memiliki '
+        'primary key id_kandang dengan nilai 1 dan 2. Berapa baris hasil query ini?',
+    codeSnippet: '''SELECT s.nama, k.nama AS nama_kandang
+FROM satwa s
+INNER JOIN kandang k ON s.id_kandang = k.id_kandang
+ORDER BY s.id_satwa;''',
+    options: ['0 baris', '2 baris', '4 baris', '3 baris'],
+    correctIndex: 3,
+    explanation:
+        'INNER JOIN hanya menyertakan pasangan yang cocok. '
+        'Lilo tidak memiliki pasangan karena id_kandang bernilai NULL.',
+  ),
+  Question(
+    id: 'q13',
+    text:
+        'Raka dan Nala berada di kandang 1, Bimo di kandang 2, '
+        'dan Lilo memiliki id_kandang NULL. Kandang 1 dan 2 masing-masing '
+        'hanya memiliki satu baris. Bagaimana hasil untuk Lilo pada query ini?',
+    codeSnippet: '''SELECT s.nama, k.nama AS nama_kandang
+FROM satwa s
+LEFT JOIN kandang k ON s.id_kandang = k.id_kandang
+ORDER BY s.id_satwa;''',
+    options: [
+      'Lilo tetap tampil dengan nama_kandang NULL',
+      'Lilo dihapus dari tabel satwa',
+      'Lilo tidak tampil dalam hasil',
+      'Lilo otomatis dipasangkan dengan kandang 1',
+    ],
+    correctIndex: 0,
+    explanation:
+        'LEFT JOIN mempertahankan semua baris tabel kiri. '
+        'Kolom dari tabel kanan bernilai NULL jika tidak ada pasangan.',
+  ),
+  Question(
+    id: 'q14',
+    text:
+        'Divisi 1 bernama Perawatan dan divisi 2 bernama Edukasi. '
+        'Dina dan Eko memiliki id_divisi 1, Fani memiliki id_divisi 2. '
+        'Nama siapa yang dihasilkan query berikut?',
+    codeSnippet: '''SELECT p.nama
+FROM petugas_tetap p
+JOIN divisi_suaka d ON p.id_divisi = d.id_divisi
+WHERE d.nama = 'Perawatan'
+ORDER BY p.nama;''',
+    options: [
+      'Fani saja',
+      'Dina dan Eko',
+      'Dina, Eko, dan Fani',
+      'Eko dan Fani',
+    ],
+    correctIndex: 1,
+    explanation:
+        'JOIN menghubungkan petugas dengan divisinya. WHERE kemudian '
+        'memilih petugas pada divisi Perawatan, yaitu Dina dan Eko.',
+  ),
+  // Agregasi: q15–q17.
+  Question(
+    id: 'q15',
+    text:
+        'Tabel satwa memiliki empat baris. Tiga baris memiliki id_kandang '
+        'dan satu baris bernilai NULL pada kolom tersebut. '
+        'Apa pasangan nilai total dan ditempatkan dari query ini?',
+    codeSnippet: '''SELECT COUNT(*) AS total, COUNT(id_kandang) AS ditempatkan
+FROM satwa;''',
+    options: ['3 dan 3', '4 dan 4', '4 dan 3', '3 dan 4'],
+    correctIndex: 2,
+    explanation:
+        'COUNT(*) menghitung semua baris, sedangkan COUNT(kolom) '
+        'hanya menghitung nilai kolom yang bukan NULL.',
+  ),
+  Question(
+    id: 'q16',
+    text:
+        'Kolom berat bertipe DECIMAL berisi 120, 80, 200, dan 50, '
+        'tanpa NULL. Berapa hasil query berikut?',
+    codeSnippet: 'SELECT AVG(berat) AS rata_rata FROM satwa;',
+    options: ['450', '100', '150', '112.5'],
+    correctIndex: 3,
+    explanation:
+        'AVG menghitung rata-rata nilai bukan NULL. '
+        'Jumlah 450 dibagi empat baris menghasilkan 112.5.',
+  ),
+  Question(
+    id: 'q17',
+    text:
+        'Nilai id_kandang pada empat baris satwa adalah 1, 1, 2, dan NULL. '
+        'Pasangan (id_kandang, jumlah) mana yang dihasilkan query berikut?',
+    codeSnippet: '''SELECT id_kandang, COUNT(*) AS jumlah
+FROM satwa
+GROUP BY id_kandang
+HAVING COUNT(*) >= 2;''',
+    options: [
+      'Hanya (1, 2)',
+      'Hanya (2, 1)',
+      '(1, 2) dan (2, 1)',
+      'Hanya (NULL, 1)',
+    ],
+    correctIndex: 0,
+    explanation:
+        'GROUP BY membentuk kelompok per id_kandang. HAVING '
+        'mempertahankan hanya kelompok dengan minimal dua baris, yaitu kandang 1.',
+  ),
+  // Index/constraint: q18.
+  Question(
+    id: 'q18',
+    text:
+        'Kolom email sudah diberi NOT NULL. Aturan apa yang secara eksplisit '
+        'menjamin bahwa dua akun tidak dapat menyimpan email yang sama?',
+    options: [
+      'Index biasa yang tidak UNIQUE',
+      'Constraint UNIQUE pada email',
+      'DEFAULT pada email',
+      'Mengurutkan hasil SELECT berdasarkan email',
+    ],
+    correctIndex: 1,
+    explanation:
+        'UNIQUE menolak nilai email yang duplikat. Index biasa '
+        'dapat membantu pencarian tetapi tidak menjamin keunikan.',
+  ),
+  // Transaksi/ACID: q19–q20.
+  Question(
+    id: 'q19',
+    text:
+        'Transfer saldo terdiri dari pengurangan saldo A dan penambahan '
+        'saldo B dalam satu transaksi. Jika langkah kedua gagal, kedua '
+        'perubahan harus dibatalkan. Sifat ACID apa yang menjamin prinsip ini?',
+    options: ['Durability', 'Isolation', 'Atomicity', 'Consistency saja'],
+    correctIndex: 2,
+    explanation:
+        'Atomicity berarti seluruh operasi dalam transaksi berhasil '
+        'sebagai satu kesatuan atau tidak diterapkan sama sekali.',
+  ),
+  Question(
+    id: 'q20',
+    text:
+        'Database telah mengonfirmasi COMMIT berhasil. Setelah server '
+        'restart, perubahan yang sudah di-commit tetap tersedia. '
+        'Sifat ACID mana yang dijelaskan?',
+    options: ['Atomicity', 'Consistency', 'Isolation', 'Durability'],
+    correctIndex: 3,
+    explanation:
+        'Durability menjamin perubahan yang telah di-commit '
+        'bertahan sesuai jaminan penyimpanan database, termasuk setelah restart.',
+  ),
 ];
