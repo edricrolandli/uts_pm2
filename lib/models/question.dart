@@ -6,8 +6,7 @@ class Question {
     required this.options,
     required this.correctIndex,
     required this.explanation,
-  }) : assert(options.length == 4),
-       assert(correctIndex >= 0 && correctIndex < 4);
+  }) : assert(correctIndex >= 0 && correctIndex < 4);
 
   final String id;
   final String text;
