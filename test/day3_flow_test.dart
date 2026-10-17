@@ -12,6 +12,12 @@ import 'package:uts_pm2/providers/theme_provider.dart';
 import 'package:uts_pm2/services/storage_service.dart';
 import 'package:uts_pm2/widgets/home/name_input_field.dart';
 import 'package:uts_pm2/widgets/home/resume_card.dart';
+import 'package:uts_pm2/widgets/quiz/option_tile.dart';
+import 'package:uts_pm2/widgets/common/key_button.dart';
+import 'package:uts_pm2/screens/quiz_screen.dart';
+import 'package:uts_pm2/screens/home_screen.dart';
+import 'package:uts_pm2/core/routes/app_routes.dart';
+import 'package:uts_pm2/core/theme/app_tokens.dart';
 
 void main() {
   late StorageService storage;
@@ -67,6 +73,149 @@ void main() {
     await tester.runAsync(() => Future<void>.delayed(Duration.zero));
     await tester.pumpAndSettle();
   }
+
+  Future<void> choose(WidgetTester tester, int index) async {
+    final option = find.byType(OptionTile).at(index);
+    await tester.ensureVisible(option);
+    await tester.tap(option);
+    await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets(
+    'Quiz locks wrong answer, reveals key, advances and resumes after back',
+    (tester) async {
+      await tester.runAsync(() => quiz.startNew('Dina'));
+      await pumpApp(tester);
+      await tapText(tester, AppStrings.resume);
+      expect(find.byType(QuizScreen), findsOneWidget);
+      final nextButton = find.widgetWithText(KeyButton, AppStrings.next);
+      expect(tester.widget<KeyButton>(nextButton).onPressed, isNull);
+      final key = quiz.currentQuestion!.displayedCorrectIndex;
+      final wrong = (key + 1) % 4;
+      await choose(tester, wrong);
+      expect(find.text(AppStrings.why), findsOneWidget);
+      expect(find.text(AppStrings.wrong), findsOneWidget);
+      expect(
+        tester.widget<OptionTile>(find.byType(OptionTile).at(wrong)).state,
+        OptionState.wrong,
+      );
+      expect(
+        tester.widget<OptionTile>(find.byType(OptionTile).at(key)).state,
+        OptionState.revealed,
+      );
+      await choose(tester, key);
+      expect(quiz.answers.first, wrong);
+      await tapText(tester, AppStrings.next);
+      expect(quiz.currentIndex, 1);
+      expect(find.text(AppStrings.why), findsNothing);
+      await choose(tester, quiz.currentQuestion!.displayedCorrectIndex);
+      expect(find.text(AppStrings.correct), findsOneWidget);
+      final before = quiz.session!.toJson();
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+      expect(find.text(AppStrings.exitTitle), findsOneWidget);
+      await tapText(tester, AppStrings.stay);
+      expect(find.byType(QuizScreen), findsOneWidget);
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+      await tapText(tester, AppStrings.exit);
+      expect(find.byType(HomeScreen), findsOneWidget);
+      expect(quiz.session!.toJson(), before);
+      await tapText(tester, AppStrings.resume);
+      expect(quiz.session!.toJson(), before);
+      expect(find.text(AppStrings.correct), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'finishing ten answers replaces Quiz and stores exactly one record',
+    (tester) async {
+      await tester.runAsync(() => quiz.startNew('Dina'));
+      await pumpApp(tester);
+      await tapText(tester, AppStrings.resume);
+      for (var i = 0; i < 10; i++) {
+        await choose(tester, quiz.currentQuestion!.displayedCorrectIndex);
+        await tapText(tester, i == 9 ? AppStrings.finish : AppStrings.next);
+      }
+      expect(quiz.status, QuizStatus.finished);
+      expect(quiz.hasSavedSession, isFalse);
+      expect(history.records.single.correct, 10);
+      expect(find.byType(QuizScreen), findsNothing);
+      expect(find.text(AppStrings.result), findsOneWidget);
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+      expect(find.byType(HomeScreen), findsOneWidget);
+      expect(find.byType(QuizScreen), findsNothing);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'reduced motion skips option animation and still reveals feedback',
+    (tester) async {
+      tester.platformDispatcher.accessibilityFeaturesTestValue =
+          const FakeAccessibilityFeatures(disableAnimations: true);
+      addTearDown(
+        tester.platformDispatcher.clearAccessibilityFeaturesTestValue,
+      );
+      await tester.runAsync(() => quiz.startNew('Dina'));
+      await pumpApp(tester);
+      await tapText(tester, AppStrings.resume);
+      final optionContext = tester.element(find.byType(OptionTile).first);
+      expect(AppMotion.of(optionContext).medium, Duration.zero);
+      await choose(
+        tester,
+        (quiz.currentQuestion!.displayedCorrectIndex + 1) % 4,
+      );
+      expect(find.text(AppStrings.wrong), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'Quiz progress survives orientation changes and semantics describe state',
+    (tester) async {
+      final semantics = tester.ensureSemantics();
+      await tester.runAsync(() => quiz.startNew('Dina'));
+      await pumpApp(tester, size: const Size(360, 640));
+      await tapText(tester, AppStrings.resume);
+      await choose(tester, quiz.currentQuestion!.displayedCorrectIndex);
+      expect(find.bySemanticsLabel(RegExp('Jawabanmu benar')), findsOneWidget);
+      expect(
+        find.bySemanticsLabel('Soal 1 dari 10, 1 benar, 0 salah'),
+        findsOneWidget,
+      );
+      semantics.dispose();
+      final snapshot = quiz.session!.toJson();
+      tester.view.physicalSize = const Size(640, 360);
+      await tester.pumpAndSettle();
+      expect(quiz.session!.toJson(), snapshot);
+      expect(tester.takeException(), isNull);
+      tester.view.physicalSize = const Size(360, 640);
+      await tester.pumpAndSettle();
+      expect(quiz.session!.toJson(), snapshot);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets('named Day 4 routes remain placeholders with a path back Home', (
+    tester,
+  ) async {
+    await pumpApp(tester);
+    for (final route in [
+      AppRoutes.result,
+      AppRoutes.review,
+      AppRoutes.history,
+    ]) {
+      Navigator.of(tester.element(find.byType(HomeScreen))).pushNamed(route);
+      await tester.pumpAndSettle();
+      expect(find.text(AppStrings.upcoming), findsOneWidget);
+      await tapText(tester, AppStrings.returnHome);
+      expect(find.byType(HomeScreen), findsOneWidget);
+    }
+  });
 
   testWidgets('Home validates trimmed names and starts exactly one session', (
     tester,
@@ -127,6 +276,31 @@ void main() {
     const Size(1280, 800),
   ]) {
     for (final mode in [ThemeMode.light, ThemeMode.dark]) {
+      testWidgets(
+        'Quiz fits $size / $mode / large text before and after answering',
+        (tester) async {
+          await tester.runAsync(() async {
+            await storage.setThemeMode(mode);
+            await theme.load();
+            await quiz.startNew('Dina');
+          });
+          await pumpApp(tester, size: size, textScale: 2);
+          await tapText(tester, AppStrings.resume);
+          expect(tester.takeException(), isNull);
+          final quizContext = tester.element(find.byType(QuizScreen));
+          expect(MediaQuery.textScalerOf(quizContext).scale(20), 26);
+          await choose(
+            tester,
+            (quiz.currentQuestion!.displayedCorrectIndex + 1) % 4,
+          );
+          await tester.ensureVisible(find.text(AppStrings.why));
+          await tester.pumpAndSettle();
+          expect(tester.takeException(), isNull);
+          await tapText(tester, AppStrings.next);
+          expect(quiz.currentIndex, 1);
+          expect(tester.takeException(), isNull);
+        },
+      );
       testWidgets('Home fits $size / $mode / large text with saved session', (
         tester,
       ) async {
