@@ -15,6 +15,7 @@ class Responsive {
   double get md => unit * 2;
   double get lg => unit * 3;
   double get xl => unit * 4;
+  double get xxl => unit * 6;
 
   double font(double base) => base * scale;
   double wp(double f) => size.width * f;
