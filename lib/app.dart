@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:uts_pm2/core/responsive/responsive.dart';
 import 'package:uts_pm2/core/theme/app_theme.dart';
 import 'package:uts_pm2/core/theme/quiz_colors.dart';
+import 'package:uts_pm2/providers/theme_provider.dart';
 
 class QueryQuestApp extends StatelessWidget {
   const QueryQuestApp({super.key});
@@ -13,7 +15,7 @@ class QueryQuestApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
-      themeMode: ThemeMode.system,
+      themeMode: context.watch<ThemeProvider>().mode,
       home: const _PlaceholderScreen(),
     );
   }
