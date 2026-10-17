@@ -16,7 +16,6 @@ import 'package:uts_pm2/widgets/quiz/option_tile.dart';
 import 'package:uts_pm2/widgets/common/key_button.dart';
 import 'package:uts_pm2/screens/quiz_screen.dart';
 import 'package:uts_pm2/screens/home_screen.dart';
-import 'package:uts_pm2/core/routes/app_routes.dart';
 import 'package:uts_pm2/core/theme/app_tokens.dart';
 
 void main() {
@@ -209,19 +208,6 @@ void main() {
       expect(tester.takeException(), isNull);
     },
   );
-
-  testWidgets('named Day 4 routes remain placeholders with a path back Home', (
-    tester,
-  ) async {
-    await pumpApp(tester);
-    for (final route in [AppRoutes.history]) {
-      Navigator.of(tester.element(find.byType(HomeScreen))).pushNamed(route);
-      await tester.pumpAndSettle();
-      expect(find.text(AppStrings.upcoming), findsOneWidget);
-      await tapText(tester, AppStrings.returnHome);
-      expect(find.byType(HomeScreen), findsOneWidget);
-    }
-  });
 
   testWidgets('Home validates trimmed names and starts exactly one session', (
     tester,

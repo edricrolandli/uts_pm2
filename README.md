@@ -42,3 +42,12 @@ Rute Result, Review, dan History sementara menampilkan halaman belum tersedia; i
 Verifikasi Day 3 (17 Oktober 2026): `flutter analyze` tanpa issue dan 49 test lulus. Widget test mencakup 360x640, 412x915, 640x360, dan 1280x800 pada light/dark, text scale besar (dibatasi 1,3), reduced motion, kontras, alur selesai, dan resume. Uji browser melalui `flutter run -d web-server` memeriksa pilih/kunci jawaban, penjelasan, lanjut, dialog keluar, resume, serta tampilan desktop dan portrait 360x640. Pengujian perangkat Android/iOS belum dilakukan.
 
 Day 2 di-merge setelah pemilik menyatakan soal dianggap valid pada 17 Oktober 2026. Query PostgreSQL belum dieksekusi oleh implementor; persetujuan pemilik bukan laporan hasil eksekusi SQL.
+
+### Status Day 4 — 18 Oktober 2026
+Result, Review, dan History sudah menggantikan placeholder Day 3. Result menampilkan nilai, grade, segmen hasil, tabel, serta durasi sesi. Review menampilkan jawaban sesuai urutan opsi sesi, kunci, SQL, penjelasan buka/tutup, dan filter Semua/Salah. History memuat maksimal 20 skor terbaru dan konfirmasi hapus semua.
+
+`QuizProvider.finish()` tetap dipanggil sebelum navigasi Result, sesuai persetujuan pemilik. Flag `_historyRecorded` mencegah simpan ulang saat retry; rebuild Result tidak melakukan write. Durasi memakai selisih `finishedAt` dan `startedAt`, diformat `intl` sebagai total menit:detik (64:12 tidak berubah menjadi 04:12). Token baru yang disetujui: count-up 700 ms dan stagger 40 ms, keduanya nol ketika reduced motion aktif. Tidak ada pekerjaan Day 5 atau perubahan palet/font.
+
+Verifikasi Day 4: `flutter analyze` tanpa issue; 62 test lulus. Widget test mencakup 360x640, 412x915, 640x360, 1280x800 dengan teks besar, idempotensi finish/rebuild, batas grade/durasi, reduced motion, filter termasuk nol salah, penjelasan, navigasi, empty state, batal/hapus, dan persistensi. Test provider mencakup batas 20 entri dan reload penyimpanan. Uji browser melalui `flutter run -d web-server` mencakup kuis sampai Result, Review/filter/penjelasan/back, serta History terisi setelah restart, batal hapus dan hapus sampai kosong. Perangkat/emulator Android belum diuji.
+
+Audit enam pola desain visual: tidak ada pelanggaran. Pola mentah `Colors\.` juga mencocokkan properti `quizColors` (false positive pada Home, KeyButton, ResultGrid); penggunaan `Colors.*` sebenarnya tidak ada. Lima pola lainnya kosong.
