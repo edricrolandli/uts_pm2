@@ -1,0 +1,102 @@
+import 'dart:math';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:uts_pm2/app.dart';
+import 'package:uts_pm2/core/constants/app_strings.dart';
+import 'package:uts_pm2/core/routes/app_routes.dart';
+import 'package:uts_pm2/providers/quiz_provider.dart';
+import 'package:uts_pm2/providers/history_provider.dart';
+import 'package:uts_pm2/providers/theme_provider.dart';
+import 'package:uts_pm2/services/storage_service.dart';
+import 'package:uts_pm2/screens/home_screen.dart';
+import 'package:uts_pm2/screens/result_screen.dart';
+
+void main() {
+  late QuizProvider quiz;
+  late HistoryProvider history;
+  late ThemeProvider theme;
+  setUp(() async {
+    SharedPreferences.setMockInitialValues({});
+    final storage = StorageService(await SharedPreferences.getInstance());
+    history = HistoryProvider(storage);
+    theme = ThemeProvider(storage);
+    quiz = QuizProvider(
+      storage: storage,
+      onFinished: history.add,
+      random: Random(7),
+    );
+    await Future.wait([history.load(), theme.load(), quiz.load()]);
+  });
+  tearDown(() {
+    quiz.dispose();
+    history.dispose();
+    theme.dispose();
+  });
+  Future<void> finish(WidgetTester tester) => tester.runAsync(() async {
+    await quiz.startNew('Nama dua puluh huruf');
+    for (var i = 0; i < 10; i++) {
+      await quiz.selectAnswer(
+        (quiz.currentQuestion!.displayedCorrectIndex + (i.isOdd ? 1 : 0)) % 4,
+      );
+      if (i < 9) await quiz.next();
+    }
+    await quiz.finish();
+  });
+  Future<void> pump(WidgetTester tester, Size size) async {
+    tester.view.physicalSize = size;
+    tester.view.devicePixelRatio = 1;
+    tester.platformDispatcher.textScaleFactorTestValue = 2;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider.value(value: quiz),
+          ChangeNotifierProvider.value(value: history),
+          ChangeNotifierProvider.value(value: theme),
+        ],
+        child: const QueryQuestApp(),
+      ),
+    );
+    await tester.pumpAndSettle();
+  }
+
+  Future<void> open(WidgetTester tester, String route) async {
+    Navigator.of(tester.element(find.byType(HomeScreen))).pushNamed(route);
+    await tester.pumpAndSettle();
+  }
+
+  Future<void> tap(WidgetTester tester, String label) async {
+    final target = find.text(label).last;
+    await tester.ensureVisible(target);
+    await tester.tap(target);
+    await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+    await tester.pumpAndSettle();
+  }
+
+  for (final size in [
+    const Size(360, 640),
+    const Size(412, 915),
+    const Size(640, 360),
+    const Size(1280, 800),
+  ]) {
+    testWidgets('Result fits $size with large text and records once', (
+      tester,
+    ) async {
+      await finish(tester);
+      await pump(tester, size);
+      await open(tester, AppRoutes.result);
+      expect(find.byType(ResultScreen), findsOneWidget);
+      expect(find.text('50'), findsNWidgets(2));
+      expect(tester.takeException(), isNull);
+      await tap(tester, AppStrings.returnHome);
+      await open(tester, AppRoutes.result);
+      expect(history.records, hasLength(1));
+      expect(tester.takeException(), isNull);
+    });
+  }
+}
