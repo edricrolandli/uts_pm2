@@ -13,6 +13,8 @@ import 'package:uts_pm2/providers/theme_provider.dart';
 import 'package:uts_pm2/services/storage_service.dart';
 import 'package:uts_pm2/screens/home_screen.dart';
 import 'package:uts_pm2/screens/result_screen.dart';
+import 'package:uts_pm2/screens/review_screen.dart';
+import 'package:uts_pm2/widgets/result/review_item_card.dart';
 
 void main() {
   late QuizProvider quiz;
@@ -84,6 +86,40 @@ void main() {
     const Size(640, 360),
     const Size(1280, 800),
   ]) {
+    testWidgets(
+      'Review filters shuffled answers and expands explanations at $size',
+      (tester) async {
+        await finish(tester);
+        await pump(tester, size);
+        await open(tester, AppRoutes.result);
+        await tap(tester, AppStrings.seeReview);
+        expect(find.byType(ReviewScreen), findsOneWidget);
+        expect(find.byType(ReviewItemCard), findsNWidgets(10));
+        expect(tester.takeException(), isNull);
+        await tap(tester, AppStrings.wrongAnswers(5));
+        expect(find.byType(ReviewItemCard), findsNWidgets(5));
+        final card = tester.widget<ReviewItemCard>(
+          find.byType(ReviewItemCard).first,
+        );
+        expect(card.index, 1);
+        expect(card.answer, isNot(card.item.displayedCorrectIndex));
+        final explanation = card.item.question.explanation;
+        expect(find.text(explanation), findsNothing);
+        await tester.ensureVisible(find.text(AppStrings.why).first);
+        await tester.tap(find.text(AppStrings.why).first);
+        await tester.pumpAndSettle();
+        expect(find.text(explanation), findsOneWidget);
+        await tester.tap(find.text(AppStrings.why).first);
+        await tester.pumpAndSettle();
+        expect(find.text(explanation), findsNothing);
+        expect(tester.takeException(), isNull);
+        await tap(tester, AppStrings.allAnswers);
+        expect(find.byType(ReviewItemCard), findsNWidgets(10));
+        await tap(tester, AppStrings.back);
+        expect(find.byType(ResultScreen), findsOneWidget);
+        expect(history.records, hasLength(1));
+      },
+    );
     testWidgets('Result fits $size with large text and records once', (
       tester,
     ) async {

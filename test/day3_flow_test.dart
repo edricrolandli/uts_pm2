@@ -214,7 +214,7 @@ void main() {
     tester,
   ) async {
     await pumpApp(tester);
-    for (final route in [AppRoutes.review, AppRoutes.history]) {
+    for (final route in [AppRoutes.history]) {
       Navigator.of(tester.element(find.byType(HomeScreen))).pushNamed(route);
       await tester.pumpAndSettle();
       expect(find.text(AppStrings.upcoming), findsOneWidget);
