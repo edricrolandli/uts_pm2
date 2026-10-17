@@ -4,10 +4,13 @@ import 'package:provider/provider.dart';
 import '../core/constants/app_strings.dart';
 import '../core/constants/asset_paths.dart';
 import '../core/responsive/responsive.dart';
+import '../core/routes/app_routes.dart';
 import '../core/theme/app_tokens.dart';
 import '../providers/quiz_provider.dart';
 import '../widgets/common/app_icon.dart';
 import '../widgets/common/mono_label.dart';
+import '../widgets/common/key_button.dart';
+
 import '../widgets/quiz/segmented_progress.dart';
 import '../widgets/quiz/question_card.dart';
 import '../widgets/quiz/option_tile.dart';
@@ -49,6 +52,37 @@ class _QuizScreenState extends State<QuizScreen> {
     }
   }
 
+  Future<void> _advance() async {
+    final quiz = context.read<QuizProvider>();
+    if (_busy || !quiz.isCurrentAnswered) return;
+    setState(() => _busy = true);
+    try {
+      if (quiz.isLastQuestion) {
+        await quiz.finish();
+        if (mounted) {
+          Navigator.of(context).pushReplacementNamed(AppRoutes.result);
+        }
+      } else {
+        await quiz.next();
+        if (!mounted) return;
+        for (final controller in [
+          _compactScroll,
+          _questionScroll,
+          _answerScroll,
+        ]) {
+          if (controller.hasClients) controller.jumpTo(0);
+        }
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text(AppStrings.saveFailed)));
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final quiz = context.watch<QuizProvider>();
@@ -63,6 +97,26 @@ class _QuizScreenState extends State<QuizScreen> {
     final r = context.r;
     final item = session.items[session.currentIndex];
     final answer = session.answers[session.currentIndex];
+    final action = SafeArea(
+      top: false,
+      child: Container(
+        padding: EdgeInsets.all(r.md),
+        decoration: BoxDecoration(
+          color: Theme.of(context).scaffoldBackgroundColor,
+          border: Border(
+            top: BorderSide(
+              color: Theme.of(context).colorScheme.outlineVariant,
+              width: AppGeometry.of(context).strokeThin,
+            ),
+          ),
+        ),
+        child: KeyButton(
+          label: quiz.isLastQuestion ? AppStrings.finish : AppStrings.next,
+          icon: AssetPaths.arrow,
+          onPressed: _busy || answer == null ? null : _advance,
+        ),
+      ),
+    );
     final question = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -130,16 +184,23 @@ class _QuizScreenState extends State<QuizScreen> {
           child: ConstrainedBox(
             constraints: BoxConstraints(maxWidth: r.contentMaxWidth),
             child: r.isCompact
-                ? SingleChildScrollView(
-                    controller: _compactScroll,
-                    padding: EdgeInsets.all(r.md),
-                    child: Column(
-                      children: [
-                        question,
-                        SizedBox(height: r.lg),
-                        options,
-                      ],
-                    ),
+                ? Column(
+                    children: [
+                      Expanded(
+                        child: SingleChildScrollView(
+                          controller: _compactScroll,
+                          padding: EdgeInsets.all(r.md),
+                          child: Column(
+                            children: [
+                              question,
+                              SizedBox(height: r.lg),
+                              options,
+                            ],
+                          ),
+                        ),
+                      ),
+                      action,
+                    ],
                   )
                 : Row(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -152,10 +213,17 @@ class _QuizScreenState extends State<QuizScreen> {
                         ),
                       ),
                       Expanded(
-                        child: SingleChildScrollView(
-                          controller: _answerScroll,
-                          padding: EdgeInsets.all(r.md),
-                          child: options,
+                        child: Column(
+                          children: [
+                            Expanded(
+                              child: SingleChildScrollView(
+                                controller: _answerScroll,
+                                padding: EdgeInsets.all(r.md),
+                                child: options,
+                              ),
+                            ),
+                            action,
+                          ],
                         ),
                       ),
                     ],
