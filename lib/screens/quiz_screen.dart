@@ -10,7 +10,7 @@ import '../providers/quiz_provider.dart';
 import '../widgets/common/app_icon.dart';
 import '../widgets/common/mono_label.dart';
 import '../widgets/common/key_button.dart';
-
+import '../widgets/common/confirm_dialog.dart';
 import '../widgets/quiz/segmented_progress.dart';
 import '../widgets/quiz/question_card.dart';
 import '../widgets/quiz/option_tile.dart';
@@ -28,6 +28,8 @@ class _QuizScreenState extends State<QuizScreen> {
   final _questionScroll = ScrollController();
   final _answerScroll = ScrollController();
   bool _busy = false;
+  bool _allowExit = false;
+  bool _exitDialogOpen = false;
 
   @override
   void dispose() {
@@ -83,6 +85,23 @@ class _QuizScreenState extends State<QuizScreen> {
     }
   }
 
+  Future<void> _requestExit() async {
+    if (_busy || _exitDialogOpen || _allowExit) return;
+    _exitDialogOpen = true;
+    final confirmed = await ConfirmDialog.ask(
+      context,
+      title: AppStrings.exitTitle,
+      message: AppStrings.exitMessage,
+      cancelLabel: AppStrings.stay,
+      confirmLabel: AppStrings.exit,
+    );
+    _exitDialogOpen = false;
+    if (!mounted || !confirmed) return;
+    setState(() => _allowExit = true);
+    await WidgetsBinding.instance.endOfFrame;
+    if (mounted) Navigator.of(context).pop();
+  }
+
   @override
   Widget build(BuildContext context) {
     final quiz = context.watch<QuizProvider>();
@@ -124,7 +143,7 @@ class _QuizScreenState extends State<QuizScreen> {
           children: [
             IconButton(
               tooltip: AppStrings.exit,
-              onPressed: _busy ? null : () => Navigator.pop(context),
+              onPressed: _busy ? null : _requestExit,
               constraints: BoxConstraints(
                 minWidth: AppGeometry.of(context).touch,
                 minHeight: AppGeometry.of(context).touch,
@@ -177,57 +196,63 @@ class _QuizScreenState extends State<QuizScreen> {
         ),
       ],
     );
-    return Scaffold(
-      body: SafeArea(
-        child: Align(
-          alignment: Alignment.topCenter,
-          child: ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: r.contentMaxWidth),
-            child: r.isCompact
-                ? Column(
-                    children: [
-                      Expanded(
-                        child: SingleChildScrollView(
-                          controller: _compactScroll,
-                          padding: EdgeInsets.all(r.md),
+    return PopScope<void>(
+      canPop: _allowExit || quiz.status != QuizStatus.inProgress,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) _requestExit();
+      },
+      child: Scaffold(
+        body: SafeArea(
+          child: Align(
+            alignment: Alignment.topCenter,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: r.contentMaxWidth),
+              child: r.isCompact
+                  ? Column(
+                      children: [
+                        Expanded(
+                          child: SingleChildScrollView(
+                            controller: _compactScroll,
+                            padding: EdgeInsets.all(r.md),
+                            child: Column(
+                              children: [
+                                question,
+                                SizedBox(height: r.lg),
+                                options,
+                              ],
+                            ),
+                          ),
+                        ),
+                        action,
+                      ],
+                    )
+                  : Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Expanded(
+                          child: SingleChildScrollView(
+                            controller: _questionScroll,
+                            padding: EdgeInsets.all(r.md),
+                            child: question,
+                          ),
+                        ),
+                        Expanded(
                           child: Column(
                             children: [
-                              question,
-                              SizedBox(height: r.lg),
-                              options,
+                              Expanded(
+                                child: SingleChildScrollView(
+                                  controller: _answerScroll,
+                                  padding: EdgeInsets.all(r.md),
+                                  child: options,
+                                ),
+                              ),
+                              action,
                             ],
                           ),
                         ),
-                      ),
-                      action,
-                    ],
-                  )
-                : Row(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Expanded(
-                        child: SingleChildScrollView(
-                          controller: _questionScroll,
-                          padding: EdgeInsets.all(r.md),
-                          child: question,
-                        ),
-                      ),
-                      Expanded(
-                        child: Column(
-                          children: [
-                            Expanded(
-                              child: SingleChildScrollView(
-                                controller: _answerScroll,
-                                padding: EdgeInsets.all(r.md),
-                                child: options,
-                              ),
-                            ),
-                            action,
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
+                      ],
+                    ),
+            ),
           ),
         ),
       ),
