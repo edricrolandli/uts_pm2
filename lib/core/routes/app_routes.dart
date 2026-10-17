@@ -4,6 +4,7 @@ import '../constants/app_strings.dart';
 import '../theme/app_tokens.dart';
 import '../../screens/home_screen.dart';
 import '../../screens/pending_screen.dart';
+import '../../screens/quiz_screen.dart';
 
 abstract final class AppRoutes {
   static const home = '/home';
@@ -23,11 +24,7 @@ abstract final class AppRoutes {
       void backHome() =>
           Navigator.of(context).popUntil(ModalRoute.withName(home));
       return switch (settings.name) {
-        quiz => PendingScreen(
-          title: AppStrings.appName,
-          message: AppStrings.quizUpcoming,
-          onReturn: backHome,
-        ),
+        quiz => const QuizScreen(),
         result => PendingScreen(title: AppStrings.result, onReturn: backHome),
         review => PendingScreen(title: AppStrings.review, onReturn: backHome),
         history => PendingScreen(
