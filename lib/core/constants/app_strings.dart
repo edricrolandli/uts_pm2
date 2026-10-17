@@ -5,6 +5,10 @@ abstract final class AppStrings {
   static const outOfHundred = 'DARI 100';
   static const correctHeader = 'BENAR';
   static const scoreHeader = 'NILAI';
+  static const yourAnswer = 'Jawabanmu';
+  static const keyAnswer = 'Kunci';
+  static const unanswered = 'Belum dijawab';
+  static const back = 'Kembali';
   static const seeReview = 'Lihat review';
   static String grade(double score) => score >= 90
       ? 'Nyaris sempurna.'
