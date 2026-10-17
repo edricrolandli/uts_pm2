@@ -10,6 +10,7 @@ class AppTextStyles {
     fontSizeFactor: context.r.scale,
     color: Theme.of(context).colorScheme.onSurface,
   );
+  TextStyle get displayXL => _style(AppTokens.displayXL);
   TextStyle get display => _style(AppTokens.display);
   TextStyle get headline => _style(AppTokens.headline);
   TextStyle get question => _style(AppTokens.question);
