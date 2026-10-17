@@ -125,6 +125,7 @@ abstract final class AppTokens {
   static const transparent = Color(0x00000000);
   static const textScaleMax = 1.3;
   static const pressedScale = .98;
+  static const themeTurn = .5;
   static const curveStandard = Curves.easeOutCubic;
   static const curveExpressive = Curves.easeOutBack;
   static const durShort = Duration(milliseconds: 120);
