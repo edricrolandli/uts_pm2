@@ -57,6 +57,11 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
+  assets:
+    - assets/icons/
+    - assets/images/
+    - assets/licenses/
+
   fonts:
     - family: Nunito
       fonts:
@@ -75,3 +80,6 @@ flutter:
           weight: 400
         - asset: assets/fonts/JetBrainsMono-SemiBold.ttf
           weight: 600
+        - asset: assets/fonts/JetBrainsMono-Bold.ttf
+          weight: 700
+
