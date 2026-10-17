@@ -61,7 +61,7 @@ class NameInputField extends StatelessWidget {
             errorBorder: border(colors.error, g.strokeThick),
             focusedErrorBorder: border(colors.error, g.strokeThick),
             errorStyle: AppTextStyles.of(context).body
-                .copyWith(color: colors.error),
+                .copyWith(color: colors.onErrorContainer),
           ),
         ),
       ],
