@@ -1,4 +1,27 @@
+import 'package:intl/intl.dart';
+
 abstract final class AppStrings {
+  static const resultEyebrow = 'HASIL';
+  static const outOfHundred = 'DARI 100';
+  static const correctHeader = 'BENAR';
+  static const scoreHeader = 'NILAI';
+  static const seeReview = 'Lihat review';
+  static String grade(double score) => score >= 90
+      ? 'Nyaris sempurna.'
+      : score >= 70
+      ? 'Udah kuat.'
+      : score >= 50
+      ? 'Hampir. Cek lagi yang salah.'
+      : 'Pelan-pelan, mulai dari review.';
+  static String scoreValue(double score) => NumberFormat('0').format(score);
+  static String correctTotal(int correct, int total) => '$correct/$total';
+  // Total menit tidak berputar ke nol pada sesi yang melebihi satu jam.
+  static String resultFooter(Duration elapsed) {
+    final seconds = elapsed.inSeconds < 0 ? 0 : elapsed.inSeconds;
+    final twoDigits = NumberFormat('00');
+    return '1 BARIS · ${twoDigits.format(seconds ~/ 60)}:${twoDigits.format(seconds % 60)}';
+  }
+
   static const appName = 'QueryQuest';
   static const homeEyebrow = 'LAB BASIS DATA';
   static const homeHeadline = 'Seberapa kenal kamu sama tabel dan query?';

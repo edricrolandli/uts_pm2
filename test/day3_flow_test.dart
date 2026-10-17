@@ -143,7 +143,7 @@ void main() {
       expect(quiz.hasSavedSession, isFalse);
       expect(history.records.single.correct, 10);
       expect(find.byType(QuizScreen), findsNothing);
-      expect(find.text(AppStrings.result), findsOneWidget);
+      expect(find.text(AppStrings.resultEyebrow), findsOneWidget);
       await tester.binding.handlePopRoute();
       await tester.pumpAndSettle();
       expect(find.byType(HomeScreen), findsOneWidget);
@@ -204,11 +204,7 @@ void main() {
     tester,
   ) async {
     await pumpApp(tester);
-    for (final route in [
-      AppRoutes.result,
-      AppRoutes.review,
-      AppRoutes.history,
-    ]) {
+    for (final route in [AppRoutes.review, AppRoutes.history]) {
       Navigator.of(tester.element(find.byType(HomeScreen))).pushNamed(route);
       await tester.pumpAndSettle();
       expect(find.text(AppStrings.upcoming), findsOneWidget);
