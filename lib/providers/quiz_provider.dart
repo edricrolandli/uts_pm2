@@ -42,6 +42,7 @@ class QuizProvider extends ChangeNotifier {
   int get currentIndex => _session?.currentIndex ?? 0;
   List<int?> get answers => _session?.answers ?? const [];
   bool get hasSavedSession => _savedSession != null;
+  QuizSession? get savedSession => _savedSession;
   ScoreRecord? get result => _result;
   SessionQuestion? get currentQuestion => _session?.items[currentIndex];
   bool get isCurrentAnswered =>
