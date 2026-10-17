@@ -16,6 +16,8 @@ import '../widgets/common/mono_label.dart';
 import '../widgets/common/responsive_body.dart';
 import '../widgets/common/theme_toggle_button.dart';
 import '../widgets/home/name_input_field.dart';
+import '../widgets/home/resume_card.dart';
+import '../widgets/common/confirm_dialog.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({
@@ -51,8 +53,47 @@ class _HomeScreenState extends State<HomeScreen> {
     if (_busy || !_form.currentState!.validate()) return;
     setState(() => _busy = true);
     try {
+      if (context.read<QuizProvider>().hasSavedSession) {
+        final confirmed = await ConfirmDialog.ask(
+          context,
+          title: AppStrings.newTitle,
+          message: AppStrings.newMessage,
+          cancelLabel: AppStrings.cancel,
+          confirmLabel: AppStrings.startNew,
+        );
+        if (!mounted || !confirmed) return;
+      }
       await context.read<QuizProvider>().startNew(_name.text.trim());
       if (mounted) widget.onOpenQuiz();
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text(AppStrings.saveFailed)));
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _resumeOrDiscard({bool discard = false}) async {
+    if (_busy) return;
+    setState(() => _busy = true);
+    try {
+      final quiz = context.read<QuizProvider>();
+      if (discard) {
+        final confirmed = await ConfirmDialog.ask(
+          context,
+          title: AppStrings.discardTitle,
+          message: AppStrings.discardMessage,
+          cancelLabel: AppStrings.cancel,
+          confirmLabel: AppStrings.discard,
+        );
+        if (!mounted || !confirmed) return;
+        await quiz.discard();
+      } else {
+        await quiz.resume();
+        if (mounted && quiz.session != null) widget.onOpenQuiz();
+      }
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context)
@@ -69,6 +110,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final g = AppGeometry.of(context);
     final styles = AppTextStyles.of(context);
     final palette = context.quizColors.palette;
+    final saved = context.watch<QuizProvider>().savedSession;
     final artwork = SvgPicture.asset(
       AssetPaths.doodle,
       height: g.doodleHeight,
@@ -103,6 +145,14 @@ class _HomeScreenState extends State<HomeScreen> {
             onPressed: _busy ? null : _start,
           ),
           SizedBox(height: r.lg),
+          if (saved != null) ...[
+            ResumeCard(
+              session: saved,
+              onResume: _busy ? null : () => _resumeOrDiscard(),
+              onDiscard: _busy ? null : () => _resumeOrDiscard(discard: true),
+            ),
+            SizedBox(height: r.lg),
+          ],
           TextButton(
             onPressed: _busy ? null : widget.onOpenHistory,
             style: TextButton.styleFrom(
