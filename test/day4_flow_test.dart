@@ -14,6 +14,8 @@ import 'package:uts_pm2/services/storage_service.dart';
 import 'package:uts_pm2/screens/home_screen.dart';
 import 'package:uts_pm2/screens/result_screen.dart';
 import 'package:uts_pm2/screens/review_screen.dart';
+import 'package:uts_pm2/widgets/history/history_row.dart';
+import 'package:uts_pm2/core/theme/app_tokens.dart';
 import 'package:uts_pm2/widgets/result/review_item_card.dart';
 
 void main() {
@@ -80,12 +82,63 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  testWidgets('Perfect score supports reduced motion and empty wrong filter', (
+    tester,
+  ) async {
+    tester.platformDispatcher.accessibilityFeaturesTestValue =
+        const FakeAccessibilityFeatures(disableAnimations: true);
+    addTearDown(tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
+    await tester.runAsync(() async {
+      await quiz.startNew('Dina');
+      for (var i = 0; i < 10; i++) {
+        await quiz.selectAnswer(quiz.currentQuestion!.displayedCorrectIndex);
+        if (i < 9) await quiz.next();
+      }
+      await quiz.finish();
+    });
+    await pump(tester, const Size(360, 640));
+    await open(tester, AppRoutes.result);
+    final context = tester.element(find.byType(ResultScreen));
+    expect(AppMotion.of(context).score, Duration.zero);
+    expect(AppMotion.of(context).segmentStagger, Duration.zero);
+    expect(find.text('100'), findsNWidgets(2));
+    await tap(tester, AppStrings.seeReview);
+    await tap(tester, AppStrings.wrongAnswers(0));
+    expect(find.byType(ReviewItemCard), findsNothing);
+    expect(find.text(AppStrings.noWrongAnswers), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
   for (final size in [
     const Size(360, 640),
     const Size(412, 915),
     const Size(640, 360),
     const Size(1280, 800),
   ]) {
+    testWidgets('History empty, populated, cancel and clear at $size', (
+      tester,
+    ) async {
+      await pump(tester, size);
+      await open(tester, AppRoutes.history);
+      expect(find.text(AppStrings.historyEmpty), findsOneWidget);
+      expect(find.text(AppStrings.clearHistory), findsNothing);
+      expect(tester.takeException(), isNull);
+      await tap(tester, AppStrings.back);
+      await finish(tester);
+      await open(tester, AppRoutes.history);
+      expect(find.byType(HistoryRow), findsNWidgets(2));
+      expect(tester.takeException(), isNull);
+      await tap(tester, AppStrings.clearHistory);
+      expect(find.text(AppStrings.clearHistoryTitle), findsOneWidget);
+      await tap(tester, AppStrings.cancel);
+      expect(history.records, hasLength(1));
+      await tap(tester, AppStrings.clearHistory);
+      await tap(tester, AppStrings.delete);
+      expect(history.records, isEmpty);
+      expect(find.text(AppStrings.historyEmpty), findsOneWidget);
+      await tester.runAsync(history.load);
+      expect(history.records, isEmpty);
+      expect(tester.takeException(), isNull);
+    });
     testWidgets(
       'Review filters shuffled answers and expands explanations at $size',
       (tester) async {
