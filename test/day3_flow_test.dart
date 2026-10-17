@@ -142,6 +142,16 @@ void main() {
       expect(quiz.status, QuizStatus.finished);
       expect(quiz.hasSavedSession, isFalse);
       expect(history.records.single.correct, 10);
+      final saved = history.records.single;
+      await tester.runAsync(() async {
+        await Future.wait([quiz.finish(), quiz.finish()]);
+        await history.load();
+      });
+      tester.view.physicalSize = const Size(640, 360);
+      await tester.pumpAndSettle();
+      expect(history.records, hasLength(1));
+      expect(history.records.single.toJson(), saved.toJson());
+      expect(tester.takeException(), isNull);
       expect(find.byType(QuizScreen), findsNothing);
       expect(find.text(AppStrings.resultEyebrow), findsOneWidget);
       await tester.binding.handlePopRoute();

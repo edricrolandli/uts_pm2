@@ -161,6 +161,7 @@ class QuizProvider extends ChangeNotifier {
       total: _session!.items.length,
       finishedAt: _now(),
     );
+    // Flag milik sesi: rebuild Result dan retry clearSession tidak menyimpan ulang.
     if (!_historyRecorded) {
       await onFinished(record);
       _historyRecorded = true;
