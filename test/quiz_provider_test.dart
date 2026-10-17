@@ -7,7 +7,8 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uts_pm2/app.dart';
 import 'package:uts_pm2/core/constants/storage_keys.dart';
-import 'package:uts_pm2/core/theme/quiz_colors.dart';
+import 'package:uts_pm2/core/constants/app_strings.dart';
+import 'package:uts_pm2/screens/home_screen.dart';
 import 'package:uts_pm2/data/question_bank.dart';
 import 'package:uts_pm2/models/score_record.dart';
 import 'package:uts_pm2/providers/history_provider.dart';
@@ -237,48 +238,42 @@ void main() {
     },
   );
 
-  testWidgets(
-    'theme toggle tersimpan dan MaterialApp memakai warna light/dark',
-    (tester) async {
-      final theme = ThemeProvider(storage);
-      addTearDown(theme.dispose);
-      await theme.load();
-      await tester.pumpWidget(
-        ChangeNotifierProvider.value(
-          value: theme,
-          child: const QueryQuestApp(),
-        ),
-      );
-      expect(find.text('Nunito Regular'), findsOneWidget);
-      expect(find.text('Nunito ExtraBold'), findsOneWidget);
-      expect(find.text('SELECT * FROM mahasiswa;'), findsOneWidget);
-      expect(
-        tester.widget<Text>(find.text('Benar')).style!.color,
-        QuizColors.light.correct,
-      );
-      await theme.toggle();
-      await tester.pumpAndSettle();
-      expect(
-        tester.widget<MaterialApp>(find.byType(MaterialApp)).themeMode,
-        ThemeMode.dark,
-      );
-      expect(
-        tester.widget<Text>(find.text('Benar')).style!.color,
-        QuizColors.dark.correct,
-      );
-      expect(
-        tester.widget<Text>(find.text('Salah')).style!.color,
-        QuizColors.dark.wrong,
-      );
-      expect(await storage.getThemeMode(), ThemeMode.dark);
-      final restored = ThemeProvider(storage);
-      addTearDown(restored.dispose);
-      await restored.load();
-      expect(restored.mode, ThemeMode.dark);
-      await theme.toggle();
-      await tester.pumpAndSettle();
-      expect(theme.mode, ThemeMode.light);
-      expect(tester.takeException(), isNull);
-    },
-  );
+  testWidgets('theme toggle persists and Home uses both palettes', (
+    tester,
+  ) async {
+    final theme = ThemeProvider(storage);
+    addTearDown(theme.dispose);
+    await theme.load();
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider.value(value: theme),
+          ChangeNotifierProvider.value(value: quiz),
+          ChangeNotifierProvider.value(value: history),
+        ],
+        child: const QueryQuestApp(),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text(AppStrings.homeHeadline), findsOneWidget);
+    expect(
+      Theme.of(tester.element(find.byType(HomeScreen))).brightness,
+      Brightness.light,
+    );
+    await theme.toggle();
+    await tester.pumpAndSettle();
+    expect(
+      Theme.of(tester.element(find.byType(HomeScreen))).brightness,
+      Brightness.dark,
+    );
+    expect(await storage.getThemeMode(), ThemeMode.dark);
+    final restored = ThemeProvider(storage);
+    addTearDown(restored.dispose);
+    await restored.load();
+    expect(restored.mode, ThemeMode.dark);
+    await theme.toggle();
+    await tester.pumpAndSettle();
+    expect(theme.mode, ThemeMode.light);
+    expect(tester.takeException(), isNull);
+  });
 }

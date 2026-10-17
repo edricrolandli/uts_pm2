@@ -33,3 +33,8 @@ Link: https://www.figma.com/design/DjSudGVr2XsTOGQyw1iZqn/uts_pm2
 
 ### Catatan implementasi visual
 Palet v2 digunakan tanpa menambah warna. Untuk kontras, `onPrimary` di dark mode memakai tinta gelap dari palet light (sekitar 10,64:1 pada amber). Outline kontrol/fokus memakai `outlineStrong`; `line` tetap untuk pemisah dekoratif. Feedback benar memakai `onCorrectContainer`, bukan hijau sebagai teks kecil. Target sentuh minimal 48dp dan text scale maksimum 1,3.
+
+### Status Day 3
+Home memiliki input nama, resume/buang sesi, tema tersimpan, dan named routes. Rute Result, Review, dan History sementara menampilkan halaman belum tersedia; isi fitur dijadwalkan Day 4. Tidak ada implementasi Day 4 pada perubahan Day 3.
+
+Day 2 di-merge setelah pemilik menyatakan soal dianggap valid pada 17 Oktober 2026. Query PostgreSQL belum dieksekusi oleh implementor; persetujuan pemilik bukan laporan hasil eksekusi SQL.
