@@ -6,6 +6,7 @@ import '../../screens/home_screen.dart';
 import '../../screens/pending_screen.dart';
 import '../../screens/quiz_screen.dart';
 import '../../screens/result_screen.dart';
+import '../../screens/review_screen.dart';
 
 abstract final class AppRoutes {
   static const home = '/home';
@@ -26,10 +27,7 @@ abstract final class AppRoutes {
           return switch (settings.name) {
             quiz => const QuizScreen(),
             result => const ResultScreen(),
-            review => PendingScreen(
-              title: AppStrings.review,
-              onReturn: backHome,
-            ),
+            review => const ReviewScreen(),
             history => PendingScreen(
               title: AppStrings.historyTitle,
               onReturn: backHome,
