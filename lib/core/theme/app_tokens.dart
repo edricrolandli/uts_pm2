@@ -130,6 +130,8 @@ abstract final class AppTokens {
   static const curveExpressive = Curves.easeOutBack;
   static const durShort = Duration(milliseconds: 120);
   static const durMedium = Duration(milliseconds: 240);
+  static const durScore = Duration(milliseconds: 700);
+  static const segmentStagger = Duration(milliseconds: 40);
   static const durLong = Duration(milliseconds: 420);
   static const durShake = Duration(milliseconds: 360);
   static const shakeCycles = 3;
@@ -231,5 +233,8 @@ class AppMotion {
   Duration get short => disabled ? Duration.zero : AppTokens.durShort;
   Duration get medium => disabled ? Duration.zero : AppTokens.durMedium;
   Duration get long => disabled ? Duration.zero : AppTokens.durLong;
+  Duration get score => disabled ? Duration.zero : AppTokens.durScore;
+  Duration get segmentStagger =>
+      disabled ? Duration.zero : AppTokens.segmentStagger;
   Duration get shake => disabled ? Duration.zero : AppTokens.durShake;
 }
