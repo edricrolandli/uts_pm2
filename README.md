@@ -30,3 +30,6 @@ Link: https://www.figma.com/design/DjSudGVr2XsTOGQyw1iZqn/uts_pm2
 - Ikon: [Phosphor Icons, bold](https://github.com/phosphor-icons/core), MIT. Salinan lisensi: `assets/licenses/Phosphor-MIT.txt`.
 - Font: Nunito (SIL OFL) dan [JetBrains Mono](https://github.com/JetBrains/JetBrainsMono) (SIL OFL). Bobot Mono Bold dibundel untuk label 700.
 - Nama aplikasi tetap **QueryQuest**, sesuai implementasi sebelumnya.
+
+### Catatan implementasi visual
+Palet v2 digunakan tanpa menambah warna. Untuk kontras, `onPrimary` di dark mode memakai tinta gelap dari palet light (sekitar 10,64:1 pada amber). Outline kontrol/fokus memakai `outlineStrong`; `line` tetap untuk pemisah dekoratif. Feedback benar memakai `onCorrectContainer`, bukan hijau sebagai teks kecil. Target sentuh minimal 48dp dan text scale maksimum 1,3.

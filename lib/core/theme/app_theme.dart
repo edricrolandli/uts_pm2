@@ -1,25 +1,67 @@
 import 'package:flutter/material.dart';
 
+import 'app_tokens.dart';
 import 'quiz_colors.dart';
 
-class AppTheme {
-  AppTheme._();
-
-  static const Color _seed = Color(0xFF0E7C86); // teal
-
+abstract final class AppTheme {
   static ThemeData light() => _build(Brightness.light, QuizColors.light);
   static ThemeData dark() => _build(Brightness.dark, QuizColors.dark);
 
   static ThemeData _build(Brightness brightness, QuizColors quizColors) {
-    final scheme = ColorScheme.fromSeed(
-      seedColor: _seed,
+    final p = quizColors.palette;
+    final scheme = ColorScheme(
       brightness: brightness,
+      primary: p.amber,
+      // Dark ink on amber is intentional: light text fails contrast in dark mode.
+      onPrimary: AppTokens.light.ink,
+      primaryContainer: p.amberContainer,
+      onPrimaryContainer: p.onAmberContainer,
+      secondary: p.blueprint,
+      onSecondary: p.paper,
+      secondaryContainer: p.blueprintContainer,
+      onSecondaryContainer: p.ink,
+      error: p.wrong,
+      onError: AppTokens.light.paper,
+      errorContainer: p.wrongContainer,
+      onErrorContainer: p.onWrongContainer,
+      surface: p.surface,
+      onSurface: p.ink,
+      onSurfaceVariant: p.inkMuted,
+      outline: p.outlineStrong,
+      outlineVariant: p.line,
+      surfaceTint: AppTokens.transparent,
     );
     return ThemeData(
       useMaterial3: true,
       colorScheme: scheme,
-      fontFamily: 'Nunito',
+      scaffoldBackgroundColor: p.paper,
+      fontFamily: AppTokens.nunito,
       extensions: [quizColors],
+      textTheme: TextTheme(
+        displayLarge: AppTokens.displayXL,
+        displayMedium: AppTokens.display,
+        headlineMedium: AppTokens.headline,
+        titleLarge: AppTokens.title,
+        bodyLarge: AppTokens.body,
+        bodyMedium: AppTokens.body,
+        labelLarge: AppTokens.monoLabel,
+      ).apply(bodyColor: p.ink, displayColor: p.ink),
+      appBarTheme: AppBarTheme(
+        backgroundColor: p.paper,
+        foregroundColor: p.ink,
+        elevation: AppTokens.zero,
+        scrolledUnderElevation: AppTokens.zero,
+        surfaceTintColor: AppTokens.transparent,
+      ),
+      splashFactory: NoSplash.splashFactory,
+      highlightColor: AppTokens.transparent,
+      hoverColor: AppTokens.transparent,
+      focusColor: AppTokens.transparent,
+      dialogTheme: DialogThemeData(
+        backgroundColor: p.surface,
+        surfaceTintColor: AppTokens.transparent,
+        elevation: AppTokens.zero,
+      ),
     );
   }
 }
