@@ -20,7 +20,7 @@ Aplikasi kuis pilihan ganda materi Lab Basis Data (Flutter).
 [placeholder]
 
 ### Mockup / Prototype
-Link: [placeholder]
+Link: https://www.figma.com/design/DjSudGVr2XsTOGQyw1iZqn/uts_pm2
 
 ## Materi Presentasi
 [placeholder]
