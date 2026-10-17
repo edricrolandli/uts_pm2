@@ -5,6 +5,10 @@ abstract final class AppStrings {
   static const outOfHundred = 'DARI 100';
   static const correctHeader = 'BENAR';
   static const scoreHeader = 'NILAI';
+  static const historyEmpty = 'Belum ada skor. Selesaikan satu kuis dulu.';
+  static const dateHeader = 'TANGGAL';
+  static String historyDate(DateTime date) =>
+      DateFormat('dd/MM/yyyy').format(date.toLocal());
   static const allAnswers = 'Semua';
   static const noWrongAnswers = 'Semua jawabanmu benar.';
   static String wrongAnswers(int count) => 'Salah ($count)';

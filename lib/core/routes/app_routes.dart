@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 
-import '../constants/app_strings.dart';
 import '../theme/app_tokens.dart';
 import '../../screens/home_screen.dart';
-import '../../screens/pending_screen.dart';
 import '../../screens/quiz_screen.dart';
 import '../../screens/result_screen.dart';
 import '../../screens/review_screen.dart';
+import '../../screens/history_screen.dart';
 
 abstract final class AppRoutes {
   static const home = '/home';
@@ -22,16 +21,11 @@ abstract final class AppRoutes {
         transitionDuration: AppTokens.durMedium,
         reverseTransitionDuration: AppTokens.durMedium,
         pageBuilder: (context, animation, secondaryAnimation) {
-          void backHome() =>
-              Navigator.of(context).popUntil(ModalRoute.withName(home));
           return switch (settings.name) {
             quiz => const QuizScreen(),
             result => const ResultScreen(),
             review => const ReviewScreen(),
-            history => PendingScreen(
-              title: AppStrings.historyTitle,
-              onReturn: backHome,
-            ),
+            history => const HistoryScreen(),
             _ => HomeScreen(
               onOpenQuiz: () => Navigator.of(context).pushNamed(quiz),
               onOpenHistory: () => Navigator.of(context).pushNamed(history),
