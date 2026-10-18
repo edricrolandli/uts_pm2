@@ -133,6 +133,9 @@ abstract final class AppTokens {
   static const durScore = Duration(milliseconds: 700);
   static const segmentStagger = Duration(milliseconds: 40);
   static const durLong = Duration(milliseconds: 420);
+  static const durSplash = Duration(milliseconds: 1600);
+  static const durType = Duration(milliseconds: 28);
+  static const durCursor = Duration(milliseconds: 500);
   static const durShake = Duration(milliseconds: 360);
   static const shakeCycles = 3;
   static const shakeRadians = 6.283185307179586;
@@ -238,4 +241,5 @@ class AppMotion {
   Duration get segmentStagger =>
       disabled ? Duration.zero : AppTokens.segmentStagger;
   Duration get shake => disabled ? Duration.zero : AppTokens.durShake;
+  Duration get splash => disabled ? Duration.zero : AppTokens.durSplash;
 }
