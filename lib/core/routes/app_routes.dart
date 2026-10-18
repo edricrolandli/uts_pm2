@@ -6,14 +6,16 @@ import '../../screens/quiz_screen.dart';
 import '../../screens/result_screen.dart';
 import '../../screens/review_screen.dart';
 import '../../screens/history_screen.dart';
+import '../../screens/splash_screen.dart';
 
 abstract final class AppRoutes {
   static const home = '/home';
+  static const splash = '/splash';
   static const quiz = '/quiz';
   static const result = '/result';
   static const review = '/review';
   static const history = '/history';
-  static const initial = home;
+  static const initial = splash;
 
   static Route<void> onGenerateRoute(
     RouteSettings settings,
@@ -24,6 +26,7 @@ abstract final class AppRoutes {
     reverseTransitionDuration: AppMotion.of(context).medium,
     pageBuilder: (context, animation, secondaryAnimation) {
       return switch (settings.name) {
+        splash => const SplashScreen(),
         quiz => const QuizScreen(),
         result => const ResultScreen(),
         review => const ReviewScreen(),
