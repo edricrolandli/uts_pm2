@@ -3,6 +3,12 @@ import 'package:intl/intl.dart';
 abstract final class AppStrings {
   static const splashQuery = 'SELECT semangat\nFROM mahasiswa;';
   static const cursor = '_';
+  static const timerReady = 'Waktu menjawab 30 detik';
+  static const timerWarning = 'Waktu tersisa 5 detik';
+  static const timerExpired = 'Waktu habis';
+  static const retrySave = 'Coba simpan lagi';
+  static String timerValue(int seconds) =>
+      '00:${seconds.toString().padLeft(2, '0')}';
   static const resultEyebrow = 'HASIL';
   static const outOfHundred = 'DARI 100';
   static const correctHeader = 'BENAR';
