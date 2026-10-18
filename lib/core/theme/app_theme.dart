@@ -21,7 +21,9 @@ abstract final class AppTheme {
       secondaryContainer: p.blueprintContainer,
       onSecondaryContainer: p.ink,
       error: p.wrong,
-      onError: AppTokens.light.paper,
+      onError: brightness == Brightness.dark
+          ? AppTokens.light.ink
+          : AppTokens.light.surface,
       errorContainer: p.wrongContainer,
       onErrorContainer: p.onWrongContainer,
       surface: p.surface,
