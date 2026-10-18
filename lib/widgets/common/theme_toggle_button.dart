@@ -11,15 +11,20 @@ class ThemeToggleButton extends StatelessWidget {
   const ThemeToggleButton({super.key});
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<ThemeProvider>();
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final mode = context.select<ThemeProvider, ThemeMode>(
+      (value) => value.mode,
+    );
+    final isDark =
+        mode == ThemeMode.dark ||
+        (mode == ThemeMode.system &&
+            MediaQuery.platformBrightnessOf(context) == Brightness.dark);
     final g = AppGeometry.of(context);
     return IconButton(
       tooltip: isDark ? AppStrings.lightMode : AppStrings.darkMode,
       constraints: BoxConstraints(minWidth: g.touch, minHeight: g.touch),
       onPressed: () async {
         try {
-          await provider.toggle();
+          await context.read<ThemeProvider>().toggle();
         } catch (_) {
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -31,6 +36,7 @@ class ThemeToggleButton extends StatelessWidget {
       icon: AnimatedRotation(
         turns: isDark ? AppTokens.themeTurn : 0,
         duration: AppMotion.of(context).medium,
+        curve: AppTokens.curveStandard,
         child: AppIcon(isDark ? AssetPaths.sun : AssetPaths.moon),
       ),
     );
