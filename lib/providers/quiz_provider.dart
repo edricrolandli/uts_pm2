@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/foundation.dart';
@@ -35,6 +36,102 @@ class QuizProvider extends ChangeNotifier {
   String _lastName = '';
   ScoreRecord? _result;
   bool _historyRecorded = false;
+  Timer? _timer;
+  int _timerGeneration = 0;
+  int _remainingSeconds = kQuestionSeconds;
+  bool _timerActive = false;
+  bool _timerFailed = false;
+  bool _disposed = false;
+
+  int get remainingSeconds => _remainingSeconds;
+  bool get timerFailed => _timerFailed;
+
+  void _notify() {
+    if (!_disposed) notifyListeners();
+  }
+
+  void _cancelTimer() {
+    _timer?.cancel();
+    _timer = null;
+    _timerGeneration++;
+  }
+
+  void pauseTimer() {
+    _timerActive = false;
+    _cancelTimer();
+  }
+
+  void resumeTimer() {
+    if (_disposed) return;
+    _timerActive = true;
+    if (_remainingSeconds == 0) {
+      unawaited(_expire(_timerGeneration));
+      return;
+    }
+    _scheduleTimer();
+  }
+
+  void _resetTimer() {
+    _cancelTimer();
+    _remainingSeconds = kQuestionSeconds;
+    _timerFailed = false;
+    _scheduleTimer();
+  }
+
+  void _scheduleTimer() {
+    if (_disposed ||
+        !_timerActive ||
+        _timer != null ||
+        _status != QuizStatus.inProgress ||
+        isCurrentAnswered ||
+        _result != null ||
+        _remainingSeconds == 0) {
+      return;
+    }
+    final generation = _timerGeneration;
+    _timer = Timer.periodic(kTimerTick, (_) {
+      _remainingSeconds--;
+      if (_remainingSeconds == 0) {
+        _timer?.cancel();
+        _timer = null;
+        unawaited(_expire(generation));
+      }
+      _notify();
+    });
+  }
+
+  Future<void> retryTimeout() => _expire(_timerGeneration);
+
+  Future<void> _expire(int generation) => _enqueue(() async {
+    if (_disposed ||
+        !_timerActive ||
+        generation != _timerGeneration ||
+        _status != QuizStatus.inProgress ||
+        isCurrentAnswered ||
+        _remainingSeconds != 0) {
+      return;
+    }
+    _cancelTimer();
+    try {
+      if (isLastQuestion) {
+        await _finish();
+      } else {
+        await _persist(_session!.copyWith(currentIndex: currentIndex + 1));
+        _resetTimer();
+      }
+      _timerFailed = false;
+    } catch (_) {
+      _timerFailed = true;
+    }
+    _notify();
+  });
+
+  @override
+  void dispose() {
+    _disposed = true;
+    pauseTimer();
+    super.dispose();
+  }
 
   QuizSession? get session => _session;
   QuizStatus get status => _status;
@@ -75,7 +172,7 @@ class QuizProvider extends ChangeNotifier {
   Future<void> load() => _enqueue(() async {
     _lastName = await storage.getLastName() ?? '';
     _savedSession = await storage.getSession(_bank);
-    notifyListeners();
+    _notify();
   });
 
   Future<void> startNew(String name) => _enqueue(() async {
@@ -106,7 +203,8 @@ class QuizProvider extends ChangeNotifier {
     _status = QuizStatus.inProgress;
     _result = null;
     _historyRecorded = false;
-    notifyListeners();
+    _resetTimer();
+    _notify();
   });
 
   Future<void> _persist(QuizSession next) async {
@@ -115,30 +213,45 @@ class QuizProvider extends ChangeNotifier {
     _savedSession = next;
   }
 
-  Future<void> selectAnswer(int displayedIndex) => _enqueue(() async {
-    if (_status != QuizStatus.inProgress ||
-        _result != null ||
-        isCurrentAnswered) {
-      return;
-    }
-    if (displayedIndex < 0 || displayedIndex > 3) {
-      throw RangeError.range(displayedIndex, 0, 3, 'displayedIndex');
-    }
-    final updated = List<int?>.of(answers)..[currentIndex] = displayedIndex;
-    await _persist(_session!.copyWith(answers: updated));
-    notifyListeners();
-  });
+  Future<void> selectAnswer(int displayedIndex) {
+    final expected = _session;
+    return _enqueue(() async {
+      if (_status != QuizStatus.inProgress ||
+          _result != null ||
+          !identical(expected, _session) ||
+          _remainingSeconds == 0 ||
+          isCurrentAnswered) {
+        return;
+      }
+      if (displayedIndex < 0 || displayedIndex > 3) {
+        throw RangeError.range(displayedIndex, 0, 3, 'displayedIndex');
+      }
+      final updated = List<int?>.of(answers)..[currentIndex] = displayedIndex;
+      _cancelTimer();
+      try {
+        await _persist(_session!.copyWith(answers: updated));
+      } finally {
+        _scheduleTimer();
+      }
+      _notify();
+    });
+  }
 
   Future<void> next() => _enqueue(() async {
     if (_status != QuizStatus.inProgress || _result != null || isLastQuestion) {
       return;
     }
     await _persist(_session!.copyWith(currentIndex: currentIndex + 1));
-    notifyListeners();
+    _resetTimer();
+    _notify();
   });
 
   Future<void> resume() => _enqueue(() async {
-    if (_status == QuizStatus.inProgress) return;
+    if (_status == QuizStatus.inProgress) {
+      if (_result == null) _resetTimer();
+      _notify();
+      return;
+    }
     final saved = await storage.getSession(_bank);
     _savedSession = saved;
     if (saved != null) {
@@ -147,11 +260,15 @@ class QuizProvider extends ChangeNotifier {
       _result = null;
       _historyRecorded = false;
     }
-    notifyListeners();
+    _resetTimer();
+    _notify();
   });
 
-  Future<void> finish() => _enqueue(() async {
+  Future<void> finish() => _enqueue(_finish);
+
+  Future<void> _finish() async {
     if (_status != QuizStatus.inProgress) return;
+    _cancelTimer();
     final record = _result ??= ScoreRecord(
       playerName: playerName,
       correct: correctCount,
@@ -165,8 +282,8 @@ class QuizProvider extends ChangeNotifier {
     await storage.clearSession();
     _savedSession = null;
     _status = QuizStatus.finished;
-    notifyListeners();
-  });
+    _notify();
+  }
 
   Future<void> discard() => _enqueue(() async {
     await storage.clearSession();
@@ -175,6 +292,8 @@ class QuizProvider extends ChangeNotifier {
     _result = null;
     _historyRecorded = false;
     _status = QuizStatus.idle;
-    notifyListeners();
+    pauseTimer();
+    _timerFailed = false;
+    _notify();
   });
 }
