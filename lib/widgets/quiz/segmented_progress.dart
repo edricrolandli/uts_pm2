@@ -25,6 +25,8 @@ class SegmentedProgress extends StatelessWidget {
       final answer = session.answers[i];
       if (answer != null) {
         answer == session.items[i].displayedCorrectIndex ? correct++ : wrong++;
+      } else if (result || i < session.currentIndex) {
+        wrong++;
       }
     }
     return Semantics(
@@ -59,6 +61,8 @@ class SegmentedProgress extends StatelessWidget {
                                     session.items[i].displayedCorrectIndex
                                 ? qc.correct
                                 : qc.wrong
+                          : result || i < session.currentIndex
+                          ? qc.wrong
                           : i == session.currentIndex
                           ? scheme.primary
                           : scheme.outlineVariant,

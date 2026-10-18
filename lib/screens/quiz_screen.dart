@@ -15,6 +15,7 @@ import '../widgets/quiz/segmented_progress.dart';
 import '../widgets/quiz/question_card.dart';
 import '../widgets/quiz/option_tile.dart';
 import '../widgets/quiz/explanation_panel.dart';
+import '../widgets/quiz/timer_chip.dart';
 import 'pending_screen.dart';
 
 class QuizScreen extends StatefulWidget {
@@ -23,16 +24,40 @@ class QuizScreen extends StatefulWidget {
   State<QuizScreen> createState() => _QuizScreenState();
 }
 
-class _QuizScreenState extends State<QuizScreen> {
+class _QuizScreenState extends State<QuizScreen> with WidgetsBindingObserver {
   final _compactScroll = ScrollController();
   final _questionScroll = ScrollController();
   final _answerScroll = ScrollController();
   bool _busy = false;
   bool _allowExit = false;
   bool _exitDialogOpen = false;
+  bool _navigating = false;
+  int? _visibleIndex;
+  late final QuizProvider _quiz;
+
+  @override
+  void initState() {
+    super.initState();
+    _quiz = context.read<QuizProvider>();
+    WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _quiz.resumeTimer();
+    });
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && !_exitDialogOpen) {
+      _quiz.resumeTimer();
+    } else {
+      _quiz.pauseTimer();
+    }
+  }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _quiz.pauseTimer();
     _compactScroll.dispose();
     _questionScroll.dispose();
     _answerScroll.dispose();
@@ -61,19 +86,8 @@ class _QuizScreenState extends State<QuizScreen> {
     try {
       if (quiz.isLastQuestion) {
         await quiz.finish();
-        if (mounted) {
-          Navigator.of(context).pushReplacementNamed(AppRoutes.result);
-        }
       } else {
         await quiz.next();
-        if (!mounted) return;
-        for (final controller in [
-          _compactScroll,
-          _questionScroll,
-          _answerScroll,
-        ]) {
-          if (controller.hasClients) controller.jumpTo(0);
-        }
       }
     } catch (_) {
       if (mounted) {
@@ -88,6 +102,7 @@ class _QuizScreenState extends State<QuizScreen> {
   Future<void> _requestExit() async {
     if (_busy || _exitDialogOpen || _allowExit) return;
     _exitDialogOpen = true;
+    _quiz.pauseTimer();
     final confirmed = await ConfirmDialog.ask(
       context,
       title: AppStrings.exitTitle,
@@ -96,16 +111,48 @@ class _QuizScreenState extends State<QuizScreen> {
       confirmLabel: AppStrings.exit,
     );
     _exitDialogOpen = false;
-    if (!mounted || !confirmed) return;
+    if (!mounted) return;
+    if (_quiz.status == QuizStatus.finished) {
+      _openResult();
+      return;
+    }
+    if (!confirmed) {
+      _quiz.resumeTimer();
+      return;
+    }
     setState(() => _allowExit = true);
     await WidgetsBinding.instance.endOfFrame;
     if (mounted) Navigator.of(context).pop();
+  }
+
+  void _openResult() {
+    if (!mounted || _navigating || ModalRoute.of(context)?.isCurrent != true) {
+      return;
+    }
+    _navigating = true;
+    Navigator.of(context).pushReplacementNamed(AppRoutes.result);
   }
 
   @override
   Widget build(BuildContext context) {
     final quiz = context.watch<QuizProvider>();
     final session = quiz.session;
+    if (quiz.status == QuizStatus.finished && !_navigating) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _openResult());
+    }
+    if (_visibleIndex != quiz.currentIndex) {
+      _visibleIndex = quiz.currentIndex;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        for (final controller in [
+          _compactScroll,
+          _questionScroll,
+          _answerScroll,
+        ]) {
+          if (controller.hasClients) controller.jumpTo(0);
+        }
+      });
+    }
     if (session == null) {
       return PendingScreen(
         title: AppStrings.appName,
@@ -129,10 +176,27 @@ class _QuizScreenState extends State<QuizScreen> {
             ),
           ),
         ),
-        child: KeyButton(
-          label: quiz.isLastQuestion ? AppStrings.finish : AppStrings.next,
-          icon: AssetPaths.arrow,
-          onPressed: _busy || answer == null ? null : _advance,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (quiz.timerFailed) Text(AppStrings.saveFailed),
+            KeyButton(
+              label: quiz.timerFailed
+                  ? AppStrings.retrySave
+                  : quiz.isLastQuestion
+                  ? AppStrings.finish
+                  : AppStrings.next,
+              icon: AssetPaths.arrow,
+              onPressed: _busy
+                  ? null
+                  : quiz.timerFailed
+                  ? quiz.retryTimeout
+                  : answer == null
+                  ? null
+                  : _advance,
+            ),
+          ],
         ),
       ),
     );
@@ -159,6 +223,8 @@ class _QuizScreenState extends State<QuizScreen> {
                 ),
               ),
             ),
+            SizedBox(width: r.sm),
+            TimerChip(seconds: quiz.remainingSeconds, answered: answer != null),
           ],
         ),
         SizedBox(height: r.sm),
@@ -184,7 +250,9 @@ class _QuizScreenState extends State<QuizScreen> {
                 : i == item.displayedCorrectIndex
                 ? OptionState.revealed
                 : OptionState.locked,
-            onPressed: answer != null || _busy ? null : () => _select(i),
+            onPressed: answer != null || _busy || quiz.remainingSeconds == 0
+                ? null
+                : () => _select(i),
           ),
           SizedBox(height: r.sm),
         ],
