@@ -25,9 +25,12 @@ class QueryQuestApp extends StatelessWidget {
     themeAnimationCurve: AppTokens.curveStandard,
     initialRoute: AppRoutes.initial,
     onGenerateInitialRoutes: (_) => [
-      AppRoutes.onGenerateRoute(const RouteSettings(name: AppRoutes.initial)),
+      AppRoutes.onGenerateRoute(
+        const RouteSettings(name: AppRoutes.initial),
+        context,
+      ),
     ],
-    onGenerateRoute: AppRoutes.onGenerateRoute,
+    onGenerateRoute: (settings) => AppRoutes.onGenerateRoute(settings, context),
     builder: (context, child) {
       final media = MediaQuery.of(context);
       return MediaQuery(
