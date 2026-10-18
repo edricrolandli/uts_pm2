@@ -51,3 +51,19 @@ Result, Review, dan History sudah menggantikan placeholder Day 3. Result menampi
 Verifikasi Day 4: `flutter analyze` tanpa issue; 62 test lulus. Widget test mencakup 360x640, 412x915, 640x360, 1280x800 dengan teks besar, idempotensi finish/rebuild, batas grade/durasi, reduced motion, filter termasuk nol salah, penjelasan, navigasi, empty state, batal/hapus, dan persistensi. Test provider mencakup batas 20 entri dan reload penyimpanan. Uji browser melalui `flutter run -d web-server` mencakup kuis sampai Result, Review/filter/penjelasan/back, serta History terisi setelah restart, batal hapus dan hapus sampai kosong. Perangkat/emulator Android belum diuji.
 
 Audit enam pola desain visual: tidak ada pelanggaran. Pola mentah `Colors\.` juga mencocokkan properti `quizColors` (false positive pada Home, KeyButton, ResultGrid); penggunaan `Colors.*` sebenarnya tidak ada. Lima pola lainnya kosong.
+
+### Status Day 5
+
+- [x] Dark Mode: toggle tersimpan, ikon mengikuti mode tujuan, kontras error diperbaiki memakai palet yang ada, dan transisi mengikuti reduced motion.
+- [x] Expressive Motion: tekan/morph/getar opsi dan count-up skor tersedia. Radius badge kini berubah sepanjang animasi; getaran di-reset ketika reduced motion aktif. Transisi rute menggunakan AppMotion.
+- [x] Responsive Layout: implementasi dua kolom dan maxWidth yang sudah ada diverifikasi pada batas 599/600 dan 1023/1024, layar 320 sampai 1920 piksel, keyboard terbuka, serta scroll kolom independen. Tidak perlu membuat ulang layout.
+- [x] Splash Screen: logo, query diketik 28 ms per karakter, kursor 500 ms, durasi 1,6 detik, lalu mengganti rute ke Home. Reduced motion melewati animasi.
+- [x] Question Timer (opsional): 30 detik per soal di QuizProvider, lima detik terakhir diberi penanda, waktu habis menyimpan jawaban kosong dan otomatis maju/selesai. Timer berhenti saat jawaban terkunci, dialog keluar, aplikasi tidak aktif, layar ditutup, kuis selesai, atau provider di-dispose. Resume dari Home mengulang waktu soal aktif; kembali dari background meneruskan sisa waktu.
+
+Timeout mengikuti antrean penyimpanan yang sama dengan jawaban. Jawaban terlambat tidak dapat masuk ke soal berikutnya; kegagalan penyimpanan menyediakan retry tanpa melompati soal atau menggandakan riwayat. Soal kosong yang sudah lewat ditampilkan sebagai salah pada progres dan Result.
+
+Verifikasi akhir Day 5: `flutter analyze --no-pub` tanpa issue, 82 test lulus, audit token dan `git diff --check` bersih. Uji browser melalui `flutter run -d web-server` memverifikasi Splash menuju Home, resume, countdown, perpindahan otomatis setelah timeout, dan timer berhenti setelah memilih jawaban. Emulator Android sempat digunakan pada branch motion, tetapi tidak terhubung pada pemeriksaan akhir; uji interaksi Android untuk timer terakhir belum dilakukan.
+
+Seluruh fitur dikerjakan lewat branch masing-masing dan merge `--no-ff`, tanpa mengubah tanggal commit. Dokumen perencanaan tetap di luar repository. Pekerjaan Day 6 belum dimulai.
+
+Catatan lingkungan Android: build APK debug semua arsitektur pada pemeriksaan akhir terhalang unduhan engine ARM karena trust store Java/Gradle melaporkan `PKIX path building failed`. Build ARM dan uji perangkat fisik perlu diulang setelah konfigurasi sertifikat lingkungan diperbaiki; verifikasi TLS tidak dinonaktifkan.
