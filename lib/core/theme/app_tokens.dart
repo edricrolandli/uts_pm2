@@ -220,6 +220,7 @@ class AppGeometry {
   double get buttonHeight => unit * 7;
   double get icon => unit * 3;
   double get badge => unit * 5;
+  BorderRadius get badgeCircle => BorderRadius.circular(badge / 2);
   double get logo => unit * 6;
   double get segmentHeight => unit;
   double get shake => unit * .75;
