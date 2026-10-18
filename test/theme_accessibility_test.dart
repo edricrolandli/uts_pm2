@@ -25,6 +25,7 @@ void main() {
           (p.inkMuted, p.paper),
           (p.inkMuted, p.surface),
           (scheme.onPrimary, p.amber),
+          (scheme.onError, scheme.error),
           (p.onAmberContainer, p.amberContainer),
           (p.onCorrectContainer, p.correctContainer),
           (p.onWrongContainer, p.wrongContainer),
@@ -38,6 +39,8 @@ void main() {
           (p.outlineStrong, p.surface),
           (p.correct, p.surface),
           (p.wrong, p.surface),
+          (p.correct, p.correctContainer),
+          (p.wrong, p.wrongContainer),
         ]) {
           expect(contrast(pair.$1, pair.$2), greaterThanOrEqualTo(3));
         }
