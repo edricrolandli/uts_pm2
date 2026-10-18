@@ -38,6 +38,7 @@ class _OptionTileState extends State<OptionTile>
     super.didUpdateWidget(oldWidget);
     if (oldWidget.state != widget.state) {
       _pressed = false;
+      _shake.reset();
       if (widget.state == OptionState.wrong &&
           !AppMotion.of(context).disabled) {
         _shake.duration = AppMotion.of(context).shake;
@@ -49,7 +50,7 @@ class _OptionTileState extends State<OptionTile>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (AppMotion.of(context).disabled) _shake.stop();
+    if (AppMotion.of(context).disabled) _shake.reset();
   }
 
   @override
@@ -149,9 +150,7 @@ class _OptionTileState extends State<OptionTile>
                           width: g.badge,
                           height: g.badge,
                           decoration: BoxDecoration(
-                            borderRadius: answered
-                                ? g.radiusSm
-                                : AppTokens.fullRadius,
+                            borderRadius: answered ? g.radiusSm : g.badgeCircle,
                             border: Border.all(
                               color: border,
                               width: g.strokeThin,

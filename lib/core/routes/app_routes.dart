@@ -15,31 +15,33 @@ abstract final class AppRoutes {
   static const history = '/history';
   static const initial = home;
 
-  static Route<void> onGenerateRoute(RouteSettings settings) =>
-      PageRouteBuilder<void>(
-        settings: settings,
-        transitionDuration: AppTokens.durMedium,
-        reverseTransitionDuration: AppTokens.durMedium,
-        pageBuilder: (context, animation, secondaryAnimation) {
-          return switch (settings.name) {
-            quiz => const QuizScreen(),
-            result => const ResultScreen(),
-            review => const ReviewScreen(),
-            history => const HistoryScreen(),
-            _ => HomeScreen(
-              onOpenQuiz: () => Navigator.of(context).pushNamed(quiz),
-              onOpenHistory: () => Navigator.of(context).pushNamed(history),
+  static Route<void> onGenerateRoute(
+    RouteSettings settings,
+    BuildContext context,
+  ) => PageRouteBuilder<void>(
+    settings: settings,
+    transitionDuration: AppMotion.of(context).medium,
+    reverseTransitionDuration: AppMotion.of(context).medium,
+    pageBuilder: (context, animation, secondaryAnimation) {
+      return switch (settings.name) {
+        quiz => const QuizScreen(),
+        result => const ResultScreen(),
+        review => const ReviewScreen(),
+        history => const HistoryScreen(),
+        _ => HomeScreen(
+          onOpenQuiz: () => Navigator.of(context).pushNamed(quiz),
+          onOpenHistory: () => Navigator.of(context).pushNamed(history),
+        ),
+      };
+    },
+    transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+        MediaQuery.disableAnimationsOf(context)
+        ? child
+        : FadeTransition(
+            opacity: animation.drive(
+              CurveTween(curve: AppTokens.curveStandard),
             ),
-          };
-        },
-        transitionsBuilder: (context, animation, secondaryAnimation, child) =>
-            MediaQuery.disableAnimationsOf(context)
-            ? child
-            : FadeTransition(
-                opacity: animation.drive(
-                  CurveTween(curve: AppTokens.curveStandard),
-                ),
-                child: child,
-              ),
-      );
+            child: child,
+          ),
+  );
 }
