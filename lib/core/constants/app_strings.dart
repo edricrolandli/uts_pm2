@@ -1,6 +1,8 @@
 import 'package:intl/intl.dart';
 
 abstract final class AppStrings {
+  static const splashQuery = 'SELECT semangat\nFROM mahasiswa;';
+  static const cursor = '_';
   static const resultEyebrow = 'HASIL';
   static const outOfHundred = 'DARI 100';
   static const correctHeader = 'BENAR';
