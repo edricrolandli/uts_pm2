@@ -10,20 +10,20 @@ import 'providers/theme_provider.dart';
 class QueryQuestApp extends StatelessWidget {
   const QueryQuestApp({super.key});
   @override
-  Widget build(BuildContext context) => MaterialApp(
+  Widget build(BuildContext context) => MediaQuery.fromView(
+    view: View.of(context),
+    child: Builder(builder: _buildApp),
+  );
+
+  // Listen above MaterialApp so accessibility changes update its transition.
+  Widget _buildApp(BuildContext context) => MaterialApp(
     title: AppStrings.appName,
     debugShowCheckedModeBanner: false,
     theme: AppTheme.light(),
     darkTheme: AppTheme.dark(),
     themeMode: context.watch<ThemeProvider>().mode,
-    themeAnimationDuration:
-        WidgetsBinding
-            .instance
-            .platformDispatcher
-            .accessibilityFeatures
-            .disableAnimations
-        ? AppTokens.noMotion
-        : AppTokens.durMedium,
+    themeAnimationDuration: AppMotion.of(context).medium,
+    themeAnimationCurve: AppTokens.curveStandard,
     initialRoute: AppRoutes.initial,
     onGenerateInitialRoutes: (_) => [
       AppRoutes.onGenerateRoute(const RouteSettings(name: AppRoutes.initial)),
