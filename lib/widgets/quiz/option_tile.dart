@@ -84,9 +84,9 @@ class _OptionTileState extends State<OptionTile>
         ? qc.correct
         : wrong
         ? qc.wrong
-        : selected
-        ? scheme.outline
-        : scheme.outlineVariant;
+        : widget.state == OptionState.locked
+        ? scheme.outlineVariant
+        : scheme.outline;
     final stateLabel = switch (widget.state) {
       OptionState.correct => AppStrings.selectedCorrect,
       OptionState.wrong => AppStrings.selectedWrong,
