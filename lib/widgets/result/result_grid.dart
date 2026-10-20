@@ -14,21 +14,17 @@ class ResultGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     final g = AppGeometry.of(context);
     final p = context.quizColors.palette;
-    Widget row(List<String> values, {bool header = false}) => Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    TableRow row(List<String> values, {bool header = false}) => TableRow(
+      decoration: header ? BoxDecoration(color: p.ink) : null,
       children: [
-        for (var i = 0; i < values.length; i++)
-          Expanded(
-            flex: i == 0 ? 2 : 1,
-            child: Padding(
-              padding: EdgeInsets.all(context.r.sm),
-              child: Text(
-                values[i],
-                style: header
-                    ? AppTextStyles.of(context).monoLabel
-                          .copyWith(color: p.paper)
-                    : AppTextStyles.of(context).monoData,
-              ),
+        for (final value in values)
+          Padding(
+            padding: EdgeInsets.all(context.r.sm),
+            child: Text(
+              value,
+              style: header
+                  ? AppTextStyles.of(context).monoLabel.copyWith(color: p.paper)
+                  : AppTextStyles.of(context).monoData,
             ),
           ),
       ],
@@ -40,48 +36,34 @@ class ResultGrid extends StatelessWidget {
         borderRadius: g.radiusMd,
         border: Border.all(color: p.ink, width: g.strokeThick),
       ),
-      child: Column(
-        children: [
-          ColoredBox(
-            color: p.ink,
-            child: row([
-              AppStrings.nimLabel,
-              AppStrings.correctHeader,
-              AppStrings.scoreHeader,
-            ], header: true),
-          ),
-          row([
-            record.nim,
-            AppStrings.correctTotal(record.correct, record.total),
-            AppStrings.scoreValue(record.percent),
-          ]),
-          Container(
-            width: double.infinity,
-            decoration: BoxDecoration(
-              border: Border(
-                top: BorderSide(color: p.line, width: g.strokeThin),
-              ),
-            ),
-            padding: EdgeInsets.all(context.r.sm),
-            child: Wrap(
-              spacing: context.r.sm,
-              crossAxisAlignment: WrapCrossAlignment.center,
+      child: LayoutBuilder(
+        builder: (context, constraints) => SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minWidth: constraints.maxWidth),
+            child: Table(
+              defaultColumnWidth: const IntrinsicColumnWidth(flex: 1),
+              columnWidths: const {0: IntrinsicColumnWidth(flex: 2)},
+              defaultVerticalAlignment: TableCellVerticalAlignment.middle,
               children: [
-                Text(
+                row([
+                  AppStrings.nimLabel,
+                  AppStrings.correctHeader,
+                  AppStrings.scoreHeader,
                   AppStrings.durationHeader,
-                  style: AppTextStyles.of(context).monoLabel
-                      .copyWith(color: p.inkMuted),
-                ),
-                Text(
+                ], header: true),
+                row([
+                  record.nim,
+                  AppStrings.correctTotal(record.correct, record.total),
+                  AppStrings.scoreValue(record.percent),
                   AppStrings.elapsedTime(
                     record.finishedAt.difference(record.session.startedAt),
                   ),
-                  style: AppTextStyles.of(context).monoData,
-                ),
+                ]),
               ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }
