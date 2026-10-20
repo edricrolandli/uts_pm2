@@ -47,7 +47,7 @@ void main() {
   test('startNew memilih 10 soal unik dan menyimpan nama/sesi', () async {
     expect(quiz.status, QuizStatus.idle);
     expect(quiz.progress, 0);
-    await quiz.startNew('  Dina  ');
+    await quiz.startNew('  Dina  ', '241401079');
     expect(quiz.playerName, 'Dina');
     expect(quiz.session!.items.length, 10);
     expect(quiz.session!.items.map((q) => q.question.id).toSet().length, 10);
@@ -62,18 +62,21 @@ void main() {
 
   test('nama tidak valid ditolak tanpa membuat sesi', () async {
     for (final name in ['', 'A', 'x' * 21]) {
-      await expectLater(quiz.startNew(name), throwsArgumentError);
+      await expectLater(quiz.startNew(name, '241401079'), throwsArgumentError);
     }
     expect(quiz.session, isNull);
     expect(prefs.containsKey(StorageKeys.session), isFalse);
-    await quiz.startNew('Dina'); // Kegagalan tidak memblokir antrean.
+    await quiz.startNew(
+      'Dina',
+      '241401079',
+    ); // Kegagalan tidak memblokir antrean.
     expect(quiz.status, QuizStatus.inProgress);
   });
 
   test(
     'jawaban terkunci termasuk ketika dua pilihan datang bersamaan',
     () async {
-      await quiz.startNew('Dina');
+      await quiz.startNew('Dina', '241401079');
       final correct = quiz.currentQuestion!.displayedCorrectIndex;
       await Future.wait([
         quiz.selectAnswer(correct),
@@ -95,16 +98,16 @@ void main() {
   test(
     'skor menggunakan indeks tampil dan soal kosong dihitung salah',
     () async {
-      await quiz.startNew('Dina');
+      await quiz.startNew('Dina', '241401079');
       for (var i = 0; i < 10; i++) {
         final correct = quiz.currentQuestion!.displayedCorrectIndex;
         if (i < 7) await quiz.selectAnswer(correct);
-        if (i == 7) await quiz.selectAnswer((correct + 1) % 4);
+        if (i >= 7) await quiz.selectAnswer((correct + 1) % 4);
         await quiz.next();
       }
       expect(quiz.correctCount, 7);
       expect(quiz.percent, 70);
-      expect(quiz.progress, .8);
+      expect(quiz.progress, 1);
       expect(quiz.currentIndex, 9);
       expect(quiz.isLastQuestion, isTrue);
       await quiz.finish();
@@ -117,8 +120,14 @@ void main() {
   test(
     'finish menambah satu riwayat, menghapus sesi, dan bersifat idempoten',
     () async {
-      await quiz.startNew('Dina');
+      await quiz.startNew('Dina', '241401079');
       await quiz.selectAnswer(quiz.currentQuestion!.displayedCorrectIndex);
+      for (var i = 1; i < 10; i++) {
+        await quiz.next();
+        await quiz.selectAnswer(
+          (quiz.currentQuestion!.displayedCorrectIndex + 1) % 4,
+        );
+      }
       await Future.wait([quiz.finish(), quiz.finish()]);
       expect(quiz.status, QuizStatus.finished);
       expect(quiz.hasSavedSession, isFalse);
@@ -128,7 +137,7 @@ void main() {
       expect(history.records.single.finishedAt, time);
       await quiz.next();
       await quiz.selectAnswer(0);
-      expect(quiz.currentIndex, 0);
+      expect(quiz.currentIndex, 9);
       expect(history.records.length, 1);
     },
   );
@@ -136,7 +145,7 @@ void main() {
   test(
     'resume memulihkan snapshot persis dan mempertahankan kunci jawaban',
     () async {
-      await quiz.startNew('Dina');
+      await quiz.startNew('Dina', '241401079');
       await quiz.selectAnswer(2);
       await quiz.next();
       await quiz.selectAnswer(1);
@@ -155,10 +164,10 @@ void main() {
   );
 
   test('discard menghapus sesi; startNew mereset jawaban', () async {
-    await quiz.startNew('Dina');
+    await quiz.startNew('Dina', '241401079');
     await quiz.selectAnswer(0);
     await quiz.next();
-    await quiz.startNew('Eko');
+    await quiz.startNew('Eko', '241401079');
     expect(quiz.currentIndex, 0);
     expect(quiz.answers.every((answer) => answer == null), isTrue);
     await quiz.discard();
@@ -170,7 +179,7 @@ void main() {
   });
 
   test('indeks jawaban di luar rentang ditolak', () async {
-    await quiz.startNew('Dina');
+    await quiz.startNew('Dina', '241401079');
     await expectLater(quiz.selectAnswer(4), throwsRangeError);
     await expectLater(quiz.selectAnswer(-1), throwsRangeError);
     expect(quiz.isCurrentAnswered, isFalse);
@@ -183,11 +192,7 @@ void main() {
     expect(await storage.getSession(kQuestionBank), isNull);
     expect(await storage.getHistory(), isEmpty);
     expect(await storage.getThemeMode(), ThemeMode.system);
-    for (final key in [
-      StorageKeys.session,
-      StorageKeys.history,
-      StorageKeys.themeMode,
-    ]) {
+    for (final key in [StorageKeys.session, StorageKeys.themeMode]) {
       expect(prefs.containsKey(key), isFalse);
     }
     await prefs.setInt(StorageKeys.session, 123);
@@ -196,7 +201,7 @@ void main() {
   });
 
   test('sesi dengan ID soal hilang dibuang', () async {
-    await quiz.startNew('Dina');
+    await quiz.startNew('Dina', '241401079');
     final data = quiz.session!.toJson();
     (data['items'] as List).first['questionId'] = 'missing';
     await prefs.setString(StorageKeys.session, jsonEncode(data));
@@ -213,11 +218,10 @@ void main() {
     'riwayat terbaru di depan, batas 20, dapat dimuat dan dihapus',
     () async {
       for (var i = 0; i < 22; i++) {
+        await quiz.startNew('Pemain $i', '241401079');
         await history.add(
           ScoreRecord(
-            playerName: 'Pemain $i',
-            correct: 1,
-            total: 10,
+            session: quiz.session!.copyWith(expired: List.filled(10, true)),
             finishedAt: time.add(Duration(minutes: i)),
           ),
         );

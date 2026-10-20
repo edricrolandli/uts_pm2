@@ -10,7 +10,7 @@ import '../../core/theme/app_text_styles.dart';
 import '../../core/theme/quiz_colors.dart';
 import '../common/app_icon.dart';
 
-enum OptionState { idle, correct, wrong, revealed, locked }
+enum OptionState { idle, selected, correct, wrong, revealed, locked }
 
 class OptionTile extends StatefulWidget {
   const OptionTile({
@@ -68,7 +68,8 @@ class _OptionTileState extends State<OptionTile>
     final correct = widget.state == OptionState.correct;
     final wrong = widget.state == OptionState.wrong;
     final revealed = widget.state == OptionState.revealed;
-    final answered = widget.state != OptionState.idle;
+    final selected = widget.state == OptionState.selected;
+    final answered = widget.state != OptionState.idle && !selected;
     final background = correct
         ? qc.correctContainer
         : wrong
@@ -83,18 +84,21 @@ class _OptionTileState extends State<OptionTile>
         ? qc.correct
         : wrong
         ? qc.wrong
-        : scheme.outline;
+        : selected
+        ? scheme.outline
+        : scheme.outlineVariant;
     final stateLabel = switch (widget.state) {
       OptionState.correct => AppStrings.selectedCorrect,
       OptionState.wrong => AppStrings.selectedWrong,
       OptionState.revealed => AppStrings.answerKey,
       OptionState.locked => AppStrings.locked,
       OptionState.idle => '',
+      OptionState.selected => AppStrings.selectedPending,
     };
     return Semantics(
       button: true,
       enabled: widget.onPressed != null,
-      selected: correct || wrong,
+      selected: selected || correct || wrong,
       label: AppStrings.optionSemantics(widget.index, widget.text, stateLabel),
       onTap: widget.onPressed,
       child: ExcludeSemantics(
@@ -127,7 +131,9 @@ class _OptionTileState extends State<OptionTile>
                 borderRadius: g.radiusMd,
                 border: Border.all(
                   color: _focused ? scheme.onSurface : border,
-                  width: answered || _focused ? g.strokeThick : g.strokeThin,
+                  width: correct || wrong || revealed || selected || _focused
+                      ? g.strokeThick
+                      : g.strokeThin,
                 ),
               ),
               child: Material(
@@ -150,6 +156,7 @@ class _OptionTileState extends State<OptionTile>
                           width: g.badge,
                           height: g.badge,
                           decoration: BoxDecoration(
+                            color: selected ? scheme.onSurface : null,
                             borderRadius: answered ? g.radiusSm : g.badgeCircle,
                             border: Border.all(
                               color: border,
@@ -164,7 +171,9 @@ class _OptionTileState extends State<OptionTile>
                                 : Text(
                                     AppStrings.optionLetters[widget.index],
                                     style: styles.monoLabel.copyWith(
-                                      color: foreground,
+                                      color: selected
+                                          ? qc.palette.paper
+                                          : foreground,
                                     ),
                                   ),
                           ),

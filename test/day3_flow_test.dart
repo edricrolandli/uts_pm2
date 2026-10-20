@@ -10,7 +10,6 @@ import 'package:uts_pm2/providers/history_provider.dart';
 import 'package:uts_pm2/providers/quiz_provider.dart';
 import 'package:uts_pm2/providers/theme_provider.dart';
 import 'package:uts_pm2/services/storage_service.dart';
-import 'package:uts_pm2/widgets/home/name_input_field.dart';
 import 'package:uts_pm2/widgets/home/resume_card.dart';
 import 'package:uts_pm2/widgets/quiz/option_tile.dart';
 import 'package:uts_pm2/widgets/common/key_button.dart';
@@ -79,16 +78,20 @@ void main() {
     await tester.tap(option);
     await tester.runAsync(() => Future<void>.delayed(Duration.zero));
     await tester.pumpAndSettle();
+    if (!quiz.isCurrentResolved) await tapText(tester, AppStrings.submitAnswer);
   }
 
   testWidgets(
     'Quiz locks wrong answer, reveals key, advances and resumes after back',
     (tester) async {
-      await tester.runAsync(() => quiz.startNew('Dina'));
+      await tester.runAsync(() => quiz.startNew('Dina', '241401079'));
       await pumpApp(tester);
       await tapText(tester, AppStrings.resume);
       expect(find.byType(QuizScreen), findsOneWidget);
-      final nextButton = find.widgetWithText(KeyButton, AppStrings.next);
+      final nextButton = find.widgetWithText(
+        KeyButton,
+        AppStrings.submitAnswer,
+      );
       expect(tester.widget<KeyButton>(nextButton).onPressed, isNull);
       final key = quiz.currentQuestion!.displayedCorrectIndex;
       final wrong = (key + 1) % 4;
@@ -131,7 +134,7 @@ void main() {
   testWidgets(
     'finishing ten answers replaces Quiz and stores exactly one record',
     (tester) async {
-      await tester.runAsync(() => quiz.startNew('Dina'));
+      await tester.runAsync(() => quiz.startNew('Dina', '241401079'));
       await pumpApp(tester);
       await tapText(tester, AppStrings.resume);
       for (var i = 0; i < 10; i++) {
@@ -169,7 +172,7 @@ void main() {
       addTearDown(
         tester.platformDispatcher.clearAccessibilityFeaturesTestValue,
       );
-      await tester.runAsync(() => quiz.startNew('Dina'));
+      await tester.runAsync(() => quiz.startNew('Dina', '241401079'));
       await pumpApp(tester);
       await tapText(tester, AppStrings.resume);
       final optionContext = tester.element(find.byType(OptionTile).first);
@@ -187,7 +190,7 @@ void main() {
     'Quiz progress survives orientation changes and semantics describe state',
     (tester) async {
       final semantics = tester.ensureSemantics();
-      await tester.runAsync(() => quiz.startNew('Dina'));
+      await tester.runAsync(() => quiz.startNew('Dina', '241401079'));
       await pumpApp(tester, size: const Size(360, 640));
       await tapText(tester, AppStrings.resume);
       await choose(tester, quiz.currentQuestion!.displayedCorrectIndex);
@@ -214,12 +217,14 @@ void main() {
   ) async {
     await pumpApp(tester);
     await tapText(tester, AppStrings.start);
+    await tapText(tester, AppStrings.start);
     expect(find.text(AppStrings.nameMin), findsOneWidget);
-    await tester.enterText(find.byType(TextFormField), 'x' * 21);
+    await tester.enterText(find.byType(TextFormField).first, 'x' * 21);
     await tapText(tester, AppStrings.start);
     expect(find.text(AppStrings.nameMax), findsOneWidget);
     expect(quiz.session, isNull);
-    await tester.enterText(find.byType(TextFormField), '  Dina  ');
+    await tester.enterText(find.byType(TextFormField).first, '  Dina  ');
+    await tester.enterText(find.byType(TextFormField).last, '241401079');
     await tapText(tester, AppStrings.start);
     expect(quiz.playerName, 'Dina');
     expect(quiz.session!.items.length, 10);
@@ -231,20 +236,13 @@ void main() {
     tester,
   ) async {
     await tester.runAsync(() async {
-      await quiz.startNew('Dina');
+      await quiz.startNew('Dina', '241401079');
       await quiz.selectAnswer(1);
       await quiz.next();
     });
     await pumpApp(tester);
-    expect(
-      tester
-          .widget<NameInputField>(find.byType(NameInputField))
-          .controller
-          .text,
-      'Dina',
-    );
     expect(find.byType(ResumeCard), findsOneWidget);
-    expect(find.text('Dina, soal 2 dari 10'), findsOneWidget);
+    expect(find.text('Dina (241401079), soal 2 dari 10'), findsOneWidget);
     await tapText(tester, AppStrings.start);
     expect(find.text(AppStrings.newTitle), findsOneWidget);
     await tapText(tester, AppStrings.cancel);
@@ -274,7 +272,7 @@ void main() {
           await tester.runAsync(() async {
             await storage.setThemeMode(mode);
             await theme.load();
-            await quiz.startNew('Dina');
+            await quiz.startNew('Dina', '241401079');
           });
           await pumpApp(tester, size: size, textScale: 2);
           await tapText(tester, AppStrings.resume);
@@ -299,7 +297,7 @@ void main() {
         await tester.runAsync(() async {
           await storage.setThemeMode(mode);
           await theme.load();
-          await quiz.startNew('Nama dua puluh huruf');
+          await quiz.startNew('Nama dua puluh huruf', '241401079');
         });
         await pumpApp(tester, size: size, textScale: 2);
         expect(find.text(AppStrings.homeHeadline), findsOneWidget);

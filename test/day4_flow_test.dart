@@ -40,7 +40,7 @@ void main() {
     theme.dispose();
   });
   Future<void> finish(WidgetTester tester) => tester.runAsync(() async {
-    await quiz.startNew('Nama dua puluh huruf');
+    await quiz.startNew('Nama dua puluh huruf', '241401079');
     for (var i = 0; i < 10; i++) {
       await quiz.selectAnswer(
         (quiz.currentQuestion!.displayedCorrectIndex + (i.isOdd ? 1 : 0)) % 4,
@@ -89,7 +89,7 @@ void main() {
         const FakeAccessibilityFeatures(disableAnimations: true);
     addTearDown(tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
     await tester.runAsync(() async {
-      await quiz.startNew('Dina');
+      await quiz.startNew('Dina', '241401079');
       for (var i = 0; i < 10; i++) {
         await quiz.selectAnswer(quiz.currentQuestion!.displayedCorrectIndex);
         if (i < 9) await quiz.next();
@@ -126,6 +126,11 @@ void main() {
       await finish(tester);
       await open(tester, AppRoutes.history);
       expect(find.byType(HistoryRow), findsNWidgets(2));
+      await tap(tester, AppStrings.historyDate(quiz.result!.finishedAt));
+      expect(find.text(AppStrings.attemptDetail), findsOneWidget);
+      expect(find.byType(ReviewItemCard), findsNWidgets(10));
+      expect(find.text('241401079'), findsOneWidget);
+      await tap(tester, AppStrings.back);
       expect(tester.takeException(), isNull);
       await tap(tester, AppStrings.clearHistory);
       expect(find.text(AppStrings.clearHistoryTitle), findsOneWidget);

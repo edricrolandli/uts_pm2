@@ -34,6 +34,24 @@ class QuizProvider extends ChangeNotifier {
   QuizSession? _savedSession;
   QuizStatus _status = QuizStatus.idle;
   String _lastName = '';
+  String _lastNim = '';
+  int? _pendingAnswer;
+  int? get pendingAnswer => _pendingAnswer;
+  String get lastName => _lastName;
+  String get lastNim => _lastNim;
+  bool get isCurrentResolved =>
+      isCurrentAnswered || (_session?.expired[currentIndex] ?? false);
+  void chooseAnswer(int index) {
+    if (index < 0 || index > 3) throw RangeError.range(index, 0, 3);
+    if (_status != QuizStatus.inProgress ||
+        isCurrentResolved ||
+        _remainingSeconds == 0) {
+      return;
+    }
+    _pendingAnswer = index;
+    _notify();
+  }
+
   ScoreRecord? _result;
   bool _historyRecorded = false;
   Timer? _timer;
@@ -73,7 +91,9 @@ class QuizProvider extends ChangeNotifier {
 
   void _resetTimer() {
     _cancelTimer();
-    _remainingSeconds = kQuestionSeconds;
+    _remainingSeconds = (_session?.expired[currentIndex] ?? false)
+        ? 0
+        : kQuestionSeconds;
     _timerFailed = false;
     _scheduleTimer();
   }
@@ -83,7 +103,7 @@ class QuizProvider extends ChangeNotifier {
         !_timerActive ||
         _timer != null ||
         _status != QuizStatus.inProgress ||
-        isCurrentAnswered ||
+        isCurrentResolved ||
         _result != null ||
         _remainingSeconds == 0) {
       return;
@@ -107,19 +127,17 @@ class QuizProvider extends ChangeNotifier {
         !_timerActive ||
         generation != _timerGeneration ||
         _status != QuizStatus.inProgress ||
-        isCurrentAnswered ||
+        isCurrentResolved ||
         _remainingSeconds != 0) {
       return;
     }
     _cancelTimer();
     try {
-      // null stays unanswered; the persisted index marks the skipped question.
-      if (isLastQuestion) {
-        await _finish();
-      } else {
-        await _persist(_session!.copyWith(currentIndex: currentIndex + 1));
-        _resetTimer();
-      }
+      final updated = List<int?>.of(answers);
+      final expired = List<bool>.of(_session!.expired)..[currentIndex] = true;
+      updated[currentIndex] = _pendingAnswer;
+      await _persist(_session!.copyWith(answers: updated, expired: expired));
+      _pendingAnswer = null;
       _timerFailed = false;
     } catch (_) {
       // Keep the expired question locked and offer an explicit save retry.
@@ -174,12 +192,16 @@ class QuizProvider extends ChangeNotifier {
 
   Future<void> load() => _enqueue(() async {
     _lastName = await storage.getLastName() ?? '';
+    _lastNim = await storage.getLastNim() ?? '';
     _savedSession = await storage.getSession(_bank);
     _notify();
   });
 
-  Future<void> startNew(String name) => _enqueue(() async {
+  Future<void> startNew(String name, String nim) => _enqueue(() async {
     final trimmed = name.trim();
+    if (!RegExp(r'^\d{9}$').hasMatch(nim)) {
+      throw ArgumentError.value(nim, 'nim');
+    }
     if (trimmed.runes.length < kMinPlayerNameLength ||
         trimmed.runes.length > kMaxPlayerNameLength) {
       throw ArgumentError.value(name, 'name', 'Nama harus 2–20 karakter.');
@@ -196,14 +218,18 @@ class QuizProvider extends ChangeNotifier {
         .toList();
     final next = QuizSession(
       playerName: trimmed,
+      nim: nim,
       items: items,
       answers: List.filled(items.length, null),
       currentIndex: 0,
       startedAt: _now(),
     );
     await storage.setLastName(trimmed);
+    await storage.setLastNim(nim);
     await _persist(next);
     _lastName = trimmed;
+    _lastNim = nim;
+    _pendingAnswer = null;
     _status = QuizStatus.inProgress;
     _result = null;
     _historyRecorded = false;
@@ -225,7 +251,7 @@ class QuizProvider extends ChangeNotifier {
           _result != null ||
           !identical(expected, _session) ||
           _remainingSeconds == 0 ||
-          isCurrentAnswered) {
+          isCurrentResolved) {
         return;
       }
       if (displayedIndex < 0 || displayedIndex > 3) {
@@ -235,6 +261,7 @@ class QuizProvider extends ChangeNotifier {
       _cancelTimer();
       try {
         await _persist(_session!.copyWith(answers: updated));
+        _pendingAnswer = null;
       } finally {
         _scheduleTimer();
       }
@@ -243,17 +270,21 @@ class QuizProvider extends ChangeNotifier {
   }
 
   Future<void> next() => _enqueue(() async {
-    if (_status != QuizStatus.inProgress || _result != null || isLastQuestion) {
+    if (_status != QuizStatus.inProgress ||
+        _result != null ||
+        isLastQuestion ||
+        !isCurrentResolved) {
       return;
     }
     await _persist(_session!.copyWith(currentIndex: currentIndex + 1));
+    _pendingAnswer = null;
     _resetTimer();
     _notify();
   });
 
   Future<void> resume() => _enqueue(() async {
     if (_status == QuizStatus.inProgress) {
-      if (_result == null) _resetTimer();
+      if (_result == null) _scheduleTimer();
       _notify();
       return;
     }
@@ -272,12 +303,14 @@ class QuizProvider extends ChangeNotifier {
   Future<void> finish() => _enqueue(_finish);
 
   Future<void> _finish() async {
-    if (_status != QuizStatus.inProgress) return;
+    if (_status != QuizStatus.inProgress ||
+        !isLastQuestion ||
+        !isCurrentResolved) {
+      return;
+    }
     _cancelTimer();
     final record = _result ??= ScoreRecord(
-      playerName: playerName,
-      correct: correctCount,
-      total: _session!.items.length,
+      session: _session!,
       finishedAt: _now(),
     );
     // Flag milik sesi: rebuild Result dan retry clearSession tidak menyimpan ulang.
@@ -294,6 +327,7 @@ class QuizProvider extends ChangeNotifier {
   Future<void> discard() => _enqueue(() async {
     await storage.clearSession();
     _session = null;
+    _pendingAnswer = null;
     _savedSession = null;
     _result = null;
     _historyRecorded = false;
