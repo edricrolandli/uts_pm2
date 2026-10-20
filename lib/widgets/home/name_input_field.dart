@@ -42,7 +42,7 @@ class NameInputField extends StatelessWidget {
           enabled: enabled,
           validator: validate,
           autovalidateMode: AutovalidateMode.onUserInteraction,
-          textInputAction: TextInputAction.go,
+          textInputAction: TextInputAction.next,
           onFieldSubmitted: (_) => onSubmitted?.call(),
           style: AppTextStyles.of(context).body,
           cursorColor: colors.onSurface,
@@ -57,7 +57,7 @@ class NameInputField extends StatelessWidget {
             border: border(colors.outline, g.strokeThin),
             enabledBorder: border(colors.outline, g.strokeThin),
             disabledBorder: border(colors.outlineVariant, g.strokeThin),
-            focusedBorder: border(colors.outline, g.strokeThick),
+            focusedBorder: border(colors.primary, g.strokeThick),
             errorBorder: border(colors.error, g.strokeThick),
             focusedErrorBorder: border(colors.error, g.strokeThick),
             errorStyle: AppTextStyles.of(context).body

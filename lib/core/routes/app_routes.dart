@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../theme/app_tokens.dart';
 import '../../screens/home_screen.dart';
+import '../../screens/identity_screen.dart';
+import '../../models/score_record.dart';
 import '../../screens/quiz_screen.dart';
 import '../../screens/result_screen.dart';
 import '../../screens/review_screen.dart';
@@ -9,6 +11,8 @@ import '../../screens/history_screen.dart';
 import '../../screens/splash_screen.dart';
 
 abstract final class AppRoutes {
+  static const identity = '/identity';
+  static const detail = '/detail';
   static const home = '/home';
   static const splash = '/splash';
   static const quiz = '/quiz';
@@ -29,7 +33,12 @@ abstract final class AppRoutes {
         splash => const SplashScreen(),
         quiz => const QuizScreen(),
         result => const ResultScreen(),
-        review => const ReviewScreen(),
+        identity => const IdentityScreen(),
+        review => ReviewScreen(record: settings.arguments as ScoreRecord?),
+        detail => ReviewScreen(
+          record: settings.arguments as ScoreRecord,
+          detail: true,
+        ),
         history => const HistoryScreen(),
         _ => HomeScreen(
           onOpenQuiz: () => Navigator.of(context).pushNamed(quiz),

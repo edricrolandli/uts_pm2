@@ -13,9 +13,9 @@ import '../providers/quiz_provider.dart';
 import '../widgets/common/app_icon.dart';
 import '../widgets/common/key_button.dart';
 import '../widgets/common/mono_label.dart';
-import '../widgets/common/responsive_body.dart';
+import '../widgets/common/bottom_action_bar.dart';
 import '../widgets/common/theme_toggle_button.dart';
-import '../widgets/home/name_input_field.dart';
+import '../core/routes/app_routes.dart';
 import '../widgets/home/resume_card.dart';
 import '../widgets/common/confirm_dialog.dart';
 
@@ -32,25 +32,9 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final _form = GlobalKey<FormState>();
-  late final TextEditingController _name;
   bool _busy = false;
-  @override
-  void initState() {
-    super.initState();
-    _name = TextEditingController(
-      text: context.read<QuizProvider>().playerName,
-    );
-  }
-
-  @override
-  void dispose() {
-    _name.dispose();
-    super.dispose();
-  }
-
   Future<void> _start() async {
-    if (_busy || !_form.currentState!.validate()) return;
+    if (_busy) return;
     setState(() => _busy = true);
     try {
       if (context.read<QuizProvider>().hasSavedSession) {
@@ -63,8 +47,7 @@ class _HomeScreenState extends State<HomeScreen> {
         );
         if (!mounted || !confirmed) return;
       }
-      await context.read<QuizProvider>().startNew(_name.text.trim());
-      if (mounted) widget.onOpenQuiz();
+      if (mounted) Navigator.of(context).pushNamed(AppRoutes.identity);
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context)
@@ -111,9 +94,9 @@ class _HomeScreenState extends State<HomeScreen> {
     final styles = AppTextStyles.of(context);
     final palette = context.quizColors.palette;
     final saved = context.watch<QuizProvider>().savedSession;
-    final artwork = SvgPicture.asset(
+    Widget artwork(double height) => SvgPicture.asset(
       AssetPaths.doodle,
-      height: g.doodleHeight,
+      height: height,
       fit: BoxFit.contain,
       alignment: Alignment.centerRight,
       excludeFromSemantics: true,
@@ -125,93 +108,176 @@ class _HomeScreenState extends State<HomeScreen> {
         const MonoLabel(AppStrings.homeEyebrow),
         SizedBox(height: r.md),
         Text(AppStrings.homeHeadline, style: styles.display),
-        if (!r.isCompact) ...[SizedBox(height: r.xl), artwork],
       ],
     );
-    final form = Form(
-      key: _form,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          NameInputField(
-            controller: _name,
-            enabled: !_busy,
-            onSubmitted: _start,
-          ),
-          SizedBox(height: r.md),
-          KeyButton(
-            label: AppStrings.start,
-            icon: AssetPaths.arrow,
-            onPressed: _busy ? null : _start,
+    final form = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (saved != null) ...[
+          ResumeCard(
+            session: saved,
+            onResume: _busy ? null : () => _resumeOrDiscard(),
+            onDiscard: _busy ? null : () => _resumeOrDiscard(discard: true),
           ),
           SizedBox(height: r.lg),
-          if (saved != null) ...[
-            ResumeCard(
-              session: saved,
-              onResume: _busy ? null : () => _resumeOrDiscard(),
-              onDiscard: _busy ? null : () => _resumeOrDiscard(discard: true),
-            ),
-            SizedBox(height: r.lg),
-          ],
-          TextButton(
-            onPressed: _busy ? null : widget.onOpenHistory,
-            style: TextButton.styleFrom(
-              foregroundColor: palette.ink,
-              minimumSize: Size(0, g.touch),
-              padding: EdgeInsets.zero,
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    AppStrings.historyCount(
-                      context.watch<HistoryProvider>().records.length,
-                    ),
-                    style: styles.body,
-                  ),
-                ),
-                const AppIcon(AssetPaths.arrow),
-              ],
-            ),
-          ),
         ],
+        TextButton(
+          onPressed: _busy ? null : widget.onOpenHistory,
+          style: TextButton.styleFrom(
+            foregroundColor: palette.ink,
+            minimumSize: Size(0, g.touch),
+            padding: EdgeInsets.zero,
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  AppStrings.historyCount(
+                    context.watch<HistoryProvider>().records.length,
+                  ),
+                  style: styles.body,
+                ),
+              ),
+              const AppIcon(AssetPaths.arrow),
+            ],
+          ),
+        ),
+      ],
+    );
+    final branding = Row(
+      children: [
+        SvgPicture.asset(
+          AssetPaths.logo,
+          width: g.logo,
+          height: g.logo,
+          excludeFromSemantics: true,
+          colorMapper: AssetPaletteMapper(palette),
+        ),
+        SizedBox(width: r.sm),
+        Expanded(child: Text(AppStrings.appName, style: styles.title)),
+        const ThemeToggleButton(),
+      ],
+    );
+    final start = BottomActionBar(
+      primary: KeyButton(
+        label: AppStrings.start,
+        icon: AssetPaths.arrow,
+        onPressed: _busy ? null : _start,
       ),
     );
-    return Scaffold(
-      body: ResponsiveBody(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                SvgPicture.asset(
-                  AssetPaths.logo,
-                  width: g.logo,
-                  height: g.logo,
-                  excludeFromSemantics: true,
-                  colorMapper: AssetPaletteMapper(palette),
+    if (!r.isCompact || r.isShort) {
+      return Scaffold(
+        body: SafeArea(
+          child: Column(
+            children: [
+              Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: r.homeSideMargin + r.md,
+                  vertical: r.sm,
                 ),
-                SizedBox(width: r.sm),
-                Expanded(child: Text(AppStrings.appName, style: styles.title)),
-                const ThemeToggleButton(),
-              ],
-            ),
-            SizedBox(height: r.xl),
-            if (r.isCompact) ...[
-              intro,
-              SizedBox(height: r.xl),
-              form,
-              SizedBox(height: r.lg),
-              artwork,
-            ] else
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(child: intro),
-                  SizedBox(width: r.xl),
-                  Expanded(child: form),
-                ],
+                child: branding,
               ),
+              Expanded(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Expanded(
+                      child: SingleChildScrollView(
+                        padding: EdgeInsets.only(
+                          left: r.homeSideMargin + r.md,
+                          right: r.md,
+                          top: r.sm,
+                          bottom: r.md,
+                        ),
+                        child: intro,
+                      ),
+                    ),
+                    Expanded(
+                      child: Column(
+                        children: [
+                          Expanded(
+                            child: LayoutBuilder(
+                              builder: (context, constraints) =>
+                                  SingleChildScrollView(
+                                    child: ConstrainedBox(
+                                      constraints: BoxConstraints(
+                                        minHeight: constraints.maxHeight,
+                                      ),
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.stretch,
+                                        children: [
+                                          Padding(
+                                            padding: EdgeInsets.only(
+                                              left: r.md,
+                                              right: r.homeSideMargin + r.md,
+                                              top: r.sm,
+                                            ),
+                                            child: form,
+                                          ),
+                                          Align(
+                                            alignment: Alignment.centerRight,
+                                            child: artwork(
+                                              r.homeArtworkHeight(
+                                                constraints.maxHeight,
+                                                saved != null,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                            ),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.only(right: r.homeSideMargin),
+                            child: start,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+    return Scaffold(
+      body: SafeArea(
+        child: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.all(r.md),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          branding,
+                          SizedBox(height: r.xl),
+                          intro,
+                          SizedBox(height: r.lg),
+                          form,
+                        ],
+                      ),
+                    ),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: artwork(g.doodleHeight),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            start,
           ],
         ),
       ),

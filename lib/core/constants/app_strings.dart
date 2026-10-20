@@ -1,6 +1,17 @@
 import 'package:intl/intl.dart';
 
 abstract final class AppStrings {
+  static const identityEyebrow = 'IDENTITAS';
+  static const identityTitle = 'Isi dulu nama dan NIM-mu.';
+  static const nimLabel = 'NIM';
+  static const nimHint = 'mis. 241401079';
+  static const nimDigits = 'NIM cuma angka.';
+  static const nimLength = 'NIM harus 9 digit.';
+  static const submitAnswer = 'Kirim jawaban';
+  static const selectedPending = 'dipilih, belum dikirim';
+  static const attemptDetail = 'Detail pengerjaan';
+  static String nimIdentity(String nim) => 'NIM $nim';
+
   static const splashQuery = 'SELECT semangat\nFROM mahasiswa;';
   static const cursor = '_';
   static const timerReady = 'Waktu menjawab 30 detik';
@@ -14,13 +25,13 @@ abstract final class AppStrings {
   static const correctHeader = 'BENAR';
   static const scoreHeader = 'NILAI';
   static const clearHistory = 'Hapus semua';
-  static const clearHistoryTitle = 'Hapus semua riwayat?';
+  static const clearHistoryTitle = 'Hapus riwayat NIM ini?';
   static const clearHistoryMessage = 'Tidak bisa dibatalkan.';
   static const delete = 'Hapus';
   static const historyEmpty = 'Belum ada skor. Selesaikan satu kuis dulu.';
   static const dateHeader = 'TANGGAL';
   static String historyDate(DateTime date) =>
-      DateFormat('dd/MM/yyyy').format(date.toLocal());
+      DateFormat('dd/MM/yyyy HH:mm').format(date.toLocal());
   static const allAnswers = 'Semua';
   static const noWrongAnswers = 'Semua jawabanmu benar.';
   static String wrongAnswers(int count) => 'Salah ($count)';

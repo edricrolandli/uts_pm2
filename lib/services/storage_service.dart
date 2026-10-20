@@ -49,17 +49,34 @@ class StorageService {
       _read(StorageKeys.lastName, (value) => value);
   Future<void> setLastName(String name) => _write(StorageKeys.lastName, name);
 
-  Future<List<ScoreRecord>> getHistory() async =>
-      await _read(StorageKeys.history, (value) {
-        final list = jsonDecode(value) as List;
-        return list
-            .map(
-              (item) =>
-                  ScoreRecord.fromJson(Map<String, dynamic>.from(item as Map)),
-            )
-            .toList();
-      }) ??
-      <ScoreRecord>[];
+  Future<String?> getLastNim() => _read(
+    StorageKeys.lastNim,
+    (value) => RegExp(r'^\d{9}$').hasMatch(value)
+        ? value
+        : throw const FormatException(),
+  );
+  Future<void> setLastNim(String nim) => _write(StorageKeys.lastNim, nim);
+
+  Future<List<ScoreRecord>> getHistory() async {
+    await _remove('history_v1');
+    final records =
+        await _read(StorageKeys.history, (value) {
+          final records = <ScoreRecord>[];
+          for (final entry in jsonDecode(value) as List) {
+            try {
+              records.add(
+                ScoreRecord.fromJson(Map<String, dynamic>.from(entry as Map)),
+              );
+            } catch (_) {
+              continue;
+            }
+          }
+          return records;
+        }) ??
+        <ScoreRecord>[];
+    await setHistory(records);
+    return records;
+  }
 
   Future<void> setHistory(List<ScoreRecord> records) => _write(
     StorageKeys.history,
