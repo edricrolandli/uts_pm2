@@ -36,8 +36,9 @@ class SessionQuestion {
               id: question.id,
               text: (json['question'] as Map)['text'] as String,
               codeSnippet: (json['question'] as Map)['codeSnippet'] as String?,
-              options: ((json['question'] as Map)['options'] as List)
-                  .cast<String>(),
+              options: List<String>.unmodifiable(
+                (json['question'] as Map)['options'] as List,
+              ),
               correctIndex: (json['question'] as Map)['correctIndex'] as int,
               explanation: (json['question'] as Map)['explanation'] as String,
             ),

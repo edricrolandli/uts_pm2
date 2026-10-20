@@ -117,11 +117,14 @@ void main() {
     final valid = quiz.result!.toJson();
     final corrupt = jsonDecode(jsonEncode(valid)) as Map<String, dynamic>;
     corrupt['session']['items'][0]['questionId'] = 'missing';
+    final badOptions = jsonDecode(jsonEncode(valid)) as Map<String, dynamic>;
+    badOptions['session']['items'][0]['question']['options'][0] = 123;
     await storage.preferences.setString(
       StorageKeys.history,
       jsonEncode([
         first.toJson(),
         corrupt,
+        badOptions,
         valid,
         {'bad': true},
       ]),
