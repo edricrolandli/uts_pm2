@@ -217,6 +217,7 @@ void main() {
   ) async {
     await pumpApp(tester);
     await tapText(tester, AppStrings.start);
+    expect(find.text(AppStrings.quizRules), findsOneWidget);
     await tapText(tester, AppStrings.start);
     expect(find.text(AppStrings.nameMin), findsOneWidget);
     // Input dibatasi sejak diketik: nama maksimal 20, NIM hanya 9 digit.

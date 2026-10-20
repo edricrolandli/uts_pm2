@@ -1,8 +1,13 @@
 import 'package:intl/intl.dart';
 
+import 'app_constants.dart';
+
 abstract final class AppStrings {
   static const identityEyebrow = 'IDENTITAS';
   static const identityTitle = 'Isi dulu nama dan NIM-mu.';
+  static const quizRules =
+      '$kQuestionsPerSession SOAL · $kQuestionSeconds DETIK PER SOAL · '
+      'BISA DILANJUTKAN';
   static const nimLabel = 'NIM';
   static const nimHint = 'mis. 241401079';
   static const nimDigits = 'NIM cuma angka.';
