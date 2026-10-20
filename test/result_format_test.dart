@@ -10,14 +10,12 @@ void main() {
     expect(AppStrings.grade(50), 'Hampir. Cek lagi yang salah.');
     expect(AppStrings.grade(49), 'Pelan-pelan, mulai dari review.');
     expect(
-      AppStrings.resultFooter(const Duration(minutes: 4, seconds: 12)),
-      '1 BARIS · 04:12',
+      AppStrings.elapsedTime(const Duration(minutes: 4, seconds: 12)),
+      '04:12',
     );
     expect(
-      AppStrings.resultFooter(
-        const Duration(hours: 1, minutes: 4, seconds: 12),
-      ),
-      '1 BARIS · 64:12',
+      AppStrings.elapsedTime(const Duration(hours: 1, minutes: 4, seconds: 12)),
+      '64:12',
     );
   });
 }

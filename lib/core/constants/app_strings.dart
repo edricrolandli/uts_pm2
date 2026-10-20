@@ -50,10 +50,11 @@ abstract final class AppStrings {
   static String scoreValue(double score) => NumberFormat('0').format(score);
   static String correctTotal(int correct, int total) => '$correct/$total';
   // Total menit tidak berputar ke nol pada sesi yang melebihi satu jam.
-  static String resultFooter(Duration elapsed) {
+  static const durationHeader = 'DURASI';
+  static String elapsedTime(Duration elapsed) {
     final seconds = elapsed.inSeconds < 0 ? 0 : elapsed.inSeconds;
     final twoDigits = NumberFormat('00');
-    return '1 BARIS · ${twoDigits.format(seconds ~/ 60)}:${twoDigits.format(seconds % 60)}';
+    return '${twoDigits.format(seconds ~/ 60)}:${twoDigits.format(seconds % 60)}';
   }
 
   static const appName = 'QueryQuest';

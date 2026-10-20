@@ -126,10 +126,30 @@ void main() {
       await finish(tester);
       await open(tester, AppRoutes.history);
       expect(find.byType(HistoryRow), findsNWidgets(2));
+      expect(
+        tester.getTopLeft(find.text(AppStrings.correctHeader)).dx,
+        tester
+            .getTopLeft(
+              find.text(
+                AppStrings.correctTotal(
+                  quiz.result!.correct,
+                  quiz.result!.total,
+                ),
+              ),
+            )
+            .dx,
+      );
+      expect(
+        tester.getTopLeft(find.text(AppStrings.scoreHeader)).dx,
+        tester
+            .getTopLeft(find.text(AppStrings.scoreValue(quiz.result!.percent)))
+            .dx,
+      );
       await tap(tester, AppStrings.historyDate(quiz.result!.finishedAt));
       expect(find.text(AppStrings.attemptDetail), findsOneWidget);
       expect(find.byType(ReviewItemCard), findsNWidgets(10));
-      expect(find.text('241401079'), findsOneWidget);
+      expect(find.text('241401079'), findsNothing);
+      expect(find.text(quiz.result!.playerName), findsNothing);
       await tap(tester, AppStrings.back);
       expect(tester.takeException(), isNull);
       await tap(tester, AppStrings.clearHistory);

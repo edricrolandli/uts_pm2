@@ -45,13 +45,13 @@ class HistoryScreen extends StatelessWidget {
         bottomBar: BottomActionBar(
           primary: KeyButton(
             label: AppStrings.back,
-            secondary: true,
             onPressed: () => Navigator.pop(context),
           ),
           secondary: records.isEmpty
               ? null
               : KeyButton(
                   label: AppStrings.clearHistory,
+                  destructive: true,
                   secondary: true,
                   onPressed: () => _clear(context),
                 ),
