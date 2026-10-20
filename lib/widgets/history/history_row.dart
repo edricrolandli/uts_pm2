@@ -44,7 +44,7 @@ class HistoryRow extends StatelessWidget {
           ),
         ),
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             cell(
               entry == null
@@ -64,7 +64,12 @@ class HistoryRow extends StatelessWidget {
                   : AppStrings.scoreValue(entry.percent),
               1,
             ),
-            if (entry != null) const AppIcon(AssetPaths.arrow),
+            ExcludeSemantics(
+              child: Opacity(
+                opacity: entry == null ? 0 : 1,
+                child: const AppIcon(AssetPaths.arrow),
+              ),
+            ),
           ],
         ),
       ),
