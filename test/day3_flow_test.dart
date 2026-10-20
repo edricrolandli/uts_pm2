@@ -219,9 +219,14 @@ void main() {
     await tapText(tester, AppStrings.start);
     await tapText(tester, AppStrings.start);
     expect(find.text(AppStrings.nameMin), findsOneWidget);
+    // Input dibatasi sejak diketik: nama maksimal 20, NIM hanya 9 digit.
     await tester.enterText(find.byType(TextFormField).first, 'x' * 21);
-    await tapText(tester, AppStrings.start);
-    expect(find.text(AppStrings.nameMax), findsOneWidget);
+    await tester.enterText(find.byType(TextFormField).last, 'a2414010791');
+    await tester.pump();
+    final fields = tester.widgetList<EditableText>(find.byType(EditableText));
+    expect(fields.first.controller.text, 'x' * 20);
+    expect(fields.last.controller.text, '241401079');
+    expect(find.text(AppStrings.nameMax), findsNothing);
     expect(quiz.session, isNull);
     await tester.enterText(find.byType(TextFormField).first, '  Dina  ');
     await tester.enterText(find.byType(TextFormField).last, '241401079');
