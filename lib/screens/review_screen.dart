@@ -58,13 +58,14 @@ class _ReviewScreenState extends State<ReviewScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            if (widget.detail && widget.record != null)
+              MonoLabel(AppStrings.historyDate(widget.record!.finishedAt)),
             Text(
               widget.detail ? AppStrings.attemptDetail : AppStrings.review,
               style: AppTextStyles.of(context).headline,
             ),
             if (widget.detail && widget.record != null) ...[
               SizedBox(height: context.r.sm),
-              MonoLabel(AppStrings.historyDate(widget.record!.finishedAt)),
               Text(
                 widget.record!.playerName,
                 style: AppTextStyles.of(context).headline,
