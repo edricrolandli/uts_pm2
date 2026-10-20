@@ -10,6 +10,7 @@ import '../providers/quiz_provider.dart';
 import '../widgets/common/app_icon.dart';
 import '../widgets/common/mono_label.dart';
 import '../widgets/common/key_button.dart';
+import '../widgets/common/bottom_action_bar.dart';
 import '../widgets/common/confirm_dialog.dart';
 import '../widgets/quiz/segmented_progress.dart';
 import '../widgets/quiz/question_card.dart';
@@ -81,7 +82,7 @@ class _QuizScreenState extends State<QuizScreen> with WidgetsBindingObserver {
 
   Future<void> _advance() async {
     final quiz = context.read<QuizProvider>();
-    if (_busy || !quiz.isCurrentAnswered) return;
+    if (_busy || !quiz.isCurrentResolved) return;
     setState(() => _busy = true);
     try {
       if (quiz.isLastQuestion) {
@@ -163,44 +164,28 @@ class _QuizScreenState extends State<QuizScreen> with WidgetsBindingObserver {
     final r = context.r;
     final item = session.items[session.currentIndex];
     final answer = session.answers[session.currentIndex];
-    final action = SafeArea(
-      top: false,
-      child: Container(
-        padding: EdgeInsets.all(r.md),
-        decoration: BoxDecoration(
-          color: Theme.of(context).scaffoldBackgroundColor,
-          border: Border(
-            top: BorderSide(
-              color: Theme.of(context).colorScheme.outlineVariant,
-              width: AppGeometry.of(context).strokeThin,
-            ),
-          ),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            if (quiz.timerFailed) Text(AppStrings.saveFailed),
-            KeyButton(
-              label: quiz.timerFailed
-                  ? AppStrings.retrySave
-                  : quiz.isLastQuestion
-                  ? AppStrings.finish
-                  : AppStrings.next,
-              icon: AssetPaths.arrow,
-              onPressed: _busy
-                  ? null
-                  : quiz.timerFailed
-                  ? quiz.retryTimeout
-                  : answer == null
-                  ? null
-                  : _advance,
-            ),
-          ],
-        ),
+    final action = BottomActionBar(
+      primary: KeyButton(
+        label: quiz.timerFailed
+            ? AppStrings.retrySave
+            : !quiz.isCurrentResolved
+            ? AppStrings.submitAnswer
+            : quiz.isLastQuestion
+            ? AppStrings.finish
+            : AppStrings.next,
+        icon: AssetPaths.arrow,
+        onPressed: _busy
+            ? null
+            : quiz.timerFailed
+            ? quiz.retryTimeout
+            : quiz.isCurrentResolved
+            ? _advance
+            : quiz.pendingAnswer == null
+            ? null
+            : () => _select(quiz.pendingAnswer!),
       ),
     );
-    final question = Column(
+    final header = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Row(
@@ -223,15 +208,26 @@ class _QuizScreenState extends State<QuizScreen> with WidgetsBindingObserver {
                 ),
               ),
             ),
+            if (!r.isCompact) ...[
+              Expanded(child: SegmentedProgress(session: session)),
+              SizedBox(width: r.md),
+            ],
             SizedBox(width: r.sm),
-            TimerChip(seconds: quiz.remainingSeconds, answered: answer != null),
+            TimerChip(
+              seconds: quiz.remainingSeconds,
+              answered: quiz.isCurrentResolved,
+            ),
           ],
         ),
-        SizedBox(height: r.sm),
-        SegmentedProgress(session: session),
-        SizedBox(height: r.lg),
-        QuestionCard(question: item.question, index: session.currentIndex),
+        if (r.isCompact) ...[
+          SizedBox(height: r.sm),
+          SegmentedProgress(session: session),
+        ],
       ],
+    );
+    final question = QuestionCard(
+      question: item.question,
+      index: session.currentIndex,
     );
     final options = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -241,8 +237,10 @@ class _QuizScreenState extends State<QuizScreen> with WidgetsBindingObserver {
             key: ValueKey((item.question.id, i)),
             index: i,
             text: item.displayedOptions[i],
-            state: answer == null
-                ? OptionState.idle
+            state: !quiz.isCurrentResolved
+                ? (quiz.pendingAnswer == i
+                      ? OptionState.selected
+                      : OptionState.idle)
                 : i == answer
                 ? i == item.displayedCorrectIndex
                       ? OptionState.correct
@@ -250,16 +248,17 @@ class _QuizScreenState extends State<QuizScreen> with WidgetsBindingObserver {
                 : i == item.displayedCorrectIndex
                 ? OptionState.revealed
                 : OptionState.locked,
-            onPressed: answer != null || _busy || quiz.remainingSeconds == 0
+            onPressed:
+                quiz.isCurrentResolved || _busy || quiz.remainingSeconds == 0
                 ? null
-                : () => _select(i),
+                : () => quiz.chooseAnswer(i),
           ),
           SizedBox(height: r.sm),
         ],
         ExplanationPanel(
           key: ValueKey(item.question.id),
           explanation: item.question.explanation,
-          answered: answer != null,
+          answered: quiz.isCurrentResolved,
           correct: answer == item.displayedCorrectIndex,
         ),
       ],
@@ -275,51 +274,58 @@ class _QuizScreenState extends State<QuizScreen> with WidgetsBindingObserver {
             alignment: Alignment.topCenter,
             child: ConstrainedBox(
               constraints: BoxConstraints(maxWidth: r.contentMaxWidth),
-              child: r.isCompact
-                  ? Column(
-                      children: [
-                        Expanded(
-                          child: SingleChildScrollView(
-                            controller: _compactScroll,
-                            padding: EdgeInsets.all(r.md),
-                            child: Column(
-                              children: [
-                                question,
-                                SizedBox(height: r.lg),
-                                options,
-                              ],
-                            ),
-                          ),
-                        ),
-                        action,
-                      ],
-                    )
-                  : Row(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Expanded(
-                          child: SingleChildScrollView(
-                            controller: _questionScroll,
-                            padding: EdgeInsets.all(r.md),
-                            child: question,
-                          ),
-                        ),
-                        Expanded(
-                          child: Column(
+              child: Column(
+                children: [
+                  Padding(padding: EdgeInsets.all(r.md), child: header),
+                  Expanded(
+                    child: r.isCompact
+                        ? Column(
                             children: [
                               Expanded(
                                 child: SingleChildScrollView(
-                                  controller: _answerScroll,
+                                  controller: _compactScroll,
                                   padding: EdgeInsets.all(r.md),
-                                  child: options,
+                                  child: Column(
+                                    children: [
+                                      question,
+                                      SizedBox(height: r.lg),
+                                      options,
+                                    ],
+                                  ),
                                 ),
                               ),
                               action,
                             ],
+                          )
+                        : Row(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Expanded(
+                                child: SingleChildScrollView(
+                                  controller: _questionScroll,
+                                  padding: EdgeInsets.all(r.md),
+                                  child: question,
+                                ),
+                              ),
+                              Expanded(
+                                child: Column(
+                                  children: [
+                                    Expanded(
+                                      child: SingleChildScrollView(
+                                        controller: _answerScroll,
+                                        padding: EdgeInsets.all(r.md),
+                                        child: options,
+                                      ),
+                                    ),
+                                    action,
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                      ],
-                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
