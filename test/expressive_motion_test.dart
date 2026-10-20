@@ -84,6 +84,51 @@ void main() {
     },
   );
 
+  testWidgets('active options use the strong outline, locked ones recede', (
+    tester,
+  ) async {
+    for (final theme in [AppTheme.light(), AppTheme.dark()]) {
+      for (final (state, expected) in [
+        (OptionState.idle, theme.colorScheme.outline),
+        (OptionState.locked, theme.colorScheme.outlineVariant),
+      ]) {
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: theme,
+            home: Scaffold(
+              body: OptionTile(
+                index: 0,
+                text: 'SELECT',
+                state: state,
+                onPressed: null,
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        final tile = find
+            .descendant(
+              of: find.byType(OptionTile),
+              matching: find.byType(AnimatedContainer),
+            )
+            .first;
+        final decoration =
+            tester
+                    .widget<Container>(
+                      find
+                          .descendant(
+                            of: tile,
+                            matching: find.byType(Container),
+                          )
+                          .first,
+                    )
+                    .decoration!
+                as BoxDecoration;
+        expect((decoration.border! as Border).top.color, expected);
+      }
+    }
+  });
+
   testWidgets('score counts up once and reduced motion shows final value', (
     tester,
   ) async {
