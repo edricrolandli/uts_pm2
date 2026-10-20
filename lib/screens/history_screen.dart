@@ -9,6 +9,9 @@ import '../widgets/common/responsive_body.dart';
 import '../widgets/common/ink_surface.dart';
 import '../widgets/common/empty_state.dart';
 import '../widgets/common/key_button.dart';
+import '../widgets/common/bottom_action_bar.dart';
+import '../widgets/common/mono_label.dart';
+import '../core/routes/app_routes.dart';
 import '../widgets/common/confirm_dialog.dart';
 import '../widgets/history/history_row.dart';
 
@@ -39,6 +42,20 @@ class HistoryScreen extends StatelessWidget {
     final records = context.watch<HistoryProvider>().records;
     return Scaffold(
       body: ResponsiveBody(
+        bottomBar: BottomActionBar(
+          primary: KeyButton(
+            label: AppStrings.back,
+            secondary: true,
+            onPressed: () => Navigator.pop(context),
+          ),
+          secondary: records.isEmpty
+              ? null
+              : KeyButton(
+                  label: AppStrings.clearHistory,
+                  secondary: true,
+                  onPressed: () => _clear(context),
+                ),
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -46,6 +63,10 @@ class HistoryScreen extends StatelessWidget {
               AppStrings.historyTitle,
               style: AppTextStyles.of(context).headline,
             ),
+            if (context.watch<HistoryProvider>().nim != null)
+              MonoLabel(
+                AppStrings.nimIdentity(context.watch<HistoryProvider>().nim!),
+              ),
             SizedBox(height: context.r.lg),
             if (records.isEmpty)
               const EmptyState(message: AppStrings.historyEmpty)
@@ -54,24 +75,18 @@ class HistoryScreen extends StatelessWidget {
                 child: Column(
                   children: [
                     const HistoryRow.header(),
-                    for (final record in records) HistoryRow(record: record),
+                    for (final record in records)
+                      HistoryRow(
+                        record: record,
+                        onPressed: () => Navigator.pushNamed(
+                          context,
+                          AppRoutes.detail,
+                          arguments: record,
+                        ),
+                      ),
                   ],
                 ),
               ),
-            SizedBox(height: context.r.lg),
-            if (records.isNotEmpty) ...[
-              KeyButton(
-                label: AppStrings.clearHistory,
-                secondary: true,
-                onPressed: () => _clear(context),
-              ),
-              SizedBox(height: context.r.sm),
-            ],
-            KeyButton(
-              label: AppStrings.back,
-              secondary: true,
-              onPressed: () => Navigator.of(context).pop(),
-            ),
           ],
         ),
       ),

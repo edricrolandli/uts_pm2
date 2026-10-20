@@ -10,6 +10,8 @@ import 'package:uts_pm2/providers/theme_provider.dart';
 import 'package:uts_pm2/services/storage_service.dart';
 import 'package:uts_pm2/widgets/quiz/question_card.dart';
 import 'package:uts_pm2/widgets/quiz/option_tile.dart';
+import 'package:uts_pm2/widgets/quiz/timer_chip.dart';
+import 'package:uts_pm2/widgets/common/bottom_action_bar.dart';
 
 void main() {
   testWidgets(
@@ -41,11 +43,14 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
+      await tester.tap(find.text(AppStrings.start));
+      await tester.pumpAndSettle();
       tester.view.viewInsets = const FakeViewPadding(bottom: 280);
-      await tester.enterText(find.byType(TextFormField), 'Dina');
+      await tester.enterText(find.byType(TextFormField).first, 'Dina');
       await tester.ensureVisible(find.text(AppStrings.start));
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
+      await tester.enterText(find.byType(TextFormField).last, '241401079');
       tester.view.resetViewInsets();
       await tester.pumpAndSettle();
       await tester.tap(find.text(AppStrings.start));
@@ -56,6 +61,8 @@ void main() {
       await tester.tap(option);
       await tester.runAsync(() => Future<void>.delayed(Duration.zero));
       await tester.pumpAndSettle();
+      expect(quiz.pendingAnswer, 0);
+      expect(quiz.answers.first, isNull);
       final snapshot = quiz.session!.toJson();
       for (final size in [
         const Size(599, 320),
@@ -69,6 +76,11 @@ void main() {
         await tester.pumpAndSettle();
         expect(tester.takeException(), isNull, reason: '$size');
         expect(quiz.session!.toJson(), snapshot);
+        expect(quiz.pendingAnswer, 0);
+        final timerPosition = tester.getTopLeft(find.byType(TimerChip));
+        final actionPosition = tester.getTopLeft(
+          find.byType(BottomActionBar).last,
+        );
         if (size.width >= 600) {
           await tester.ensureVisible(option);
           await tester.pumpAndSettle();
@@ -89,6 +101,13 @@ void main() {
             );
           }
         }
+        await tester.ensureVisible(find.byType(OptionTile).last);
+        await tester.pumpAndSettle();
+        expect(tester.getTopLeft(find.byType(TimerChip)), timerPosition);
+        expect(
+          tester.getTopLeft(find.byType(BottomActionBar).last),
+          actionPosition,
+        );
       }
       await tester.pumpWidget(const SizedBox.shrink());
     },

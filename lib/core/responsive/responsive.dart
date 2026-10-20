@@ -21,6 +21,12 @@ class Responsive {
   double wp(double f) => size.width * f;
   double hp(double f) => size.height * f;
 
+  double get homeSideMargin =>
+      isCompact ? 0 : ((size.width - contentMaxWidth) / 2).clamp(0, size.width);
+  double homeArtworkHeight(double available, bool hasSaved) =>
+      (available - unit * (hasSaved ? 30 : 8)).clamp(unit * 4, unit * 25);
+  bool get isShort => size.height < 500;
+  bool get actionsHorizontal => !isCompact || isShort;
   bool get isCompact => size.width < 600;
   bool get isMedium => size.width >= 600 && size.width < 1024;
   bool get isExpanded => size.width >= 1024;
