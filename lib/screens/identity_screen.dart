@@ -79,6 +79,8 @@ class _IdentityScreenState extends State<IdentityScreen> {
               AppStrings.identityTitle,
               style: AppTextStyles.of(context).headline,
             ),
+            SizedBox(height: context.r.sm),
+            const MonoLabel(AppStrings.quizRules),
             SizedBox(height: context.r.lg),
             NameInputField(controller: _name, enabled: !_busy),
             SizedBox(height: context.r.md),
