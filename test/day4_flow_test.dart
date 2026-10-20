@@ -16,6 +16,7 @@ import 'package:uts_pm2/screens/result_screen.dart';
 import 'package:uts_pm2/screens/review_screen.dart';
 import 'package:uts_pm2/widgets/history/history_row.dart';
 import 'package:uts_pm2/core/theme/app_tokens.dart';
+import 'package:uts_pm2/widgets/result/result_grid.dart';
 import 'package:uts_pm2/widgets/result/review_item_card.dart';
 
 void main() {
@@ -148,7 +149,12 @@ void main() {
       await tap(tester, AppStrings.historyDate(quiz.result!.finishedAt));
       expect(find.text(AppStrings.attemptDetail), findsOneWidget);
       expect(find.byType(ReviewItemCard), findsNWidgets(10));
-      expect(find.text('241401079'), findsNothing);
+      expect(
+        find.text(AppStrings.historyDate(quiz.result!.finishedAt)),
+        findsOneWidget,
+      );
+      expect(find.byType(ResultGrid), findsOneWidget);
+      expect(find.text('241401079'), findsOneWidget);
       expect(find.text(quiz.result!.playerName), findsNothing);
       await tap(tester, AppStrings.back);
       expect(tester.takeException(), isNull);
