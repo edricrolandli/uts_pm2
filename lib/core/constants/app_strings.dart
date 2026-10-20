@@ -1,8 +1,13 @@
 import 'package:intl/intl.dart';
 
+import 'app_constants.dart';
+
 abstract final class AppStrings {
   static const identityEyebrow = 'IDENTITAS';
   static const identityTitle = 'Isi dulu nama dan NIM-mu.';
+  static const quizRules =
+      '$kQuestionsPerSession SOAL · $kQuestionSeconds DETIK PER SOAL · '
+      'BISA DILANJUTKAN';
   static const nimLabel = 'NIM';
   static const nimHint = 'mis. 241401079';
   static const nimDigits = 'NIM cuma angka.';
@@ -17,6 +22,7 @@ abstract final class AppStrings {
   static const timerReady = 'Waktu menjawab 30 detik';
   static const timerWarning = 'Waktu tersisa 5 detik';
   static const timerExpired = 'Waktu habis';
+  static const timerOut = 'Habis';
   static const retrySave = 'Coba simpan lagi';
   static String timerValue(int seconds) =>
       '00:${seconds.toString().padLeft(2, '0')}';
