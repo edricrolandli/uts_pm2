@@ -148,7 +148,7 @@ class _OptionTileState extends State<OptionTile>
                   child: Padding(
                     padding: EdgeInsets.all(context.r.md),
                     child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         AnimatedContainer(
                           duration: AppMotion.of(context).medium,
