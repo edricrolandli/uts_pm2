@@ -56,28 +56,27 @@ class ResultGrid extends StatelessWidget {
             AppStrings.scoreValue(record.percent),
           ]),
           Container(
+            width: double.infinity,
             decoration: BoxDecoration(
               border: Border(
                 top: BorderSide(color: p.line, width: g.strokeThin),
               ),
             ),
             padding: EdgeInsets.all(context.r.sm),
-            child: Row(
+            child: Wrap(
+              spacing: context.r.sm,
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
-                Expanded(
-                  child: Text(
-                    AppStrings.durationHeader,
-                    style: AppTextStyles.of(context).monoLabel,
-                  ),
+                Text(
+                  AppStrings.durationHeader,
+                  style: AppTextStyles.of(context).monoLabel
+                      .copyWith(color: p.inkMuted),
                 ),
-                Expanded(
-                  child: Text(
-                    AppStrings.elapsedTime(
-                      record.finishedAt.difference(record.session.startedAt),
-                    ),
-                    style: AppTextStyles.of(context).monoData,
-                    textAlign: TextAlign.end,
+                Text(
+                  AppStrings.elapsedTime(
+                    record.finishedAt.difference(record.session.startedAt),
                   ),
+                  style: AppTextStyles.of(context).monoData,
                 ),
               ],
             ),
