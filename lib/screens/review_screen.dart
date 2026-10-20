@@ -8,9 +8,6 @@ import '../core/theme/app_tokens.dart';
 import '../providers/quiz_provider.dart';
 import '../models/score_record.dart';
 import '../widgets/common/bottom_action_bar.dart';
-import '../widgets/common/mono_label.dart';
-import '../widgets/result/result_grid.dart';
-import '../widgets/quiz/segmented_progress.dart';
 import '../widgets/common/responsive_body.dart';
 import '../widgets/common/key_button.dart';
 import '../widgets/result/review_item_card.dart';
@@ -58,32 +55,10 @@ class _ReviewScreenState extends State<ReviewScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (widget.detail && widget.record != null)
-              MonoLabel(AppStrings.historyDate(widget.record!.finishedAt)),
             Text(
               widget.detail ? AppStrings.attemptDetail : AppStrings.review,
               style: AppTextStyles.of(context).headline,
             ),
-            if (widget.detail && widget.record != null) ...[
-              SizedBox(height: context.r.sm),
-              Text(
-                widget.record!.playerName,
-                style: AppTextStyles.of(context).headline,
-              ),
-              SizedBox(height: context.r.md),
-              SegmentedProgress(
-                session: session!,
-                result: true,
-                animate: false,
-              ),
-              SizedBox(height: context.r.md),
-              ResultGrid(record: widget.record!),
-              MonoLabel(
-                AppStrings.resultFooter(
-                  widget.record!.finishedAt.difference(session.startedAt),
-                ),
-              ),
-            ],
             SizedBox(height: context.r.md),
             SegmentedButton<bool>(
               segments: [

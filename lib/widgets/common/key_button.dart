@@ -12,11 +12,13 @@ class KeyButton extends StatelessWidget {
     required this.label,
     required this.onPressed,
     this.secondary = false,
+    this.destructive = false,
     this.icon,
   });
   final String label;
   final VoidCallback? onPressed;
   final bool secondary;
+  final bool destructive;
   final String? icon;
   @override
   Widget build(BuildContext context) {
@@ -25,6 +27,8 @@ class KeyButton extends StatelessWidget {
     final active = onPressed != null;
     final foreground = !active
         ? scheme.onSurfaceVariant
+        : destructive
+        ? scheme.onErrorContainer
         : secondary
         ? scheme.onSurface
         : scheme.onPrimary;
@@ -65,12 +69,18 @@ class KeyButton extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: !active
                       ? scheme.outlineVariant
+                      : destructive
+                      ? scheme.errorContainer
                       : secondary
                       ? scheme.surface
                       : scheme.primary,
                   borderRadius: AppTokens.fullRadius,
                   border: Border.all(
-                    color: focused ? scheme.onSurface : scheme.outline,
+                    color: focused
+                        ? scheme.onSurface
+                        : destructive
+                        ? scheme.error
+                        : scheme.outline,
                     width: focused ? g.strokeThick : g.strokeThin,
                   ),
                 ),

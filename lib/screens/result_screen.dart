@@ -35,18 +35,7 @@ class ResultScreen extends StatelessWidget {
         SegmentedProgress(session: session, result: true),
       ],
     );
-    final details = Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        ResultGrid(record: record),
-        SizedBox(height: context.r.sm),
-        MonoLabel(
-          AppStrings.resultFooter(
-            record.finishedAt.difference(session.startedAt),
-          ),
-        ),
-      ],
-    );
+    final details = ResultGrid(record: record);
     return Scaffold(
       body: ResponsiveBody(
         bottomBar: BottomActionBar(
