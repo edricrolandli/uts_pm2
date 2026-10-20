@@ -17,6 +17,7 @@ abstract final class AppStrings {
   static const timerReady = 'Waktu menjawab 30 detik';
   static const timerWarning = 'Waktu tersisa 5 detik';
   static const timerExpired = 'Waktu habis';
+  static const timerOut = 'Habis';
   static const retrySave = 'Coba simpan lagi';
   static String timerValue(int seconds) =>
       '00:${seconds.toString().padLeft(2, '0')}';

@@ -216,6 +216,7 @@ class _QuizScreenState extends State<QuizScreen> with WidgetsBindingObserver {
             TimerChip(
               seconds: quiz.remainingSeconds,
               answered: quiz.isCurrentResolved,
+              expired: session.expired[session.currentIndex],
             ),
           ],
         ),
