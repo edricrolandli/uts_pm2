@@ -8,14 +8,23 @@ import '../../core/theme/app_tokens.dart';
 import '../../core/theme/quiz_colors.dart';
 
 class TimerChip extends StatelessWidget {
-  const TimerChip({super.key, required this.seconds, required this.answered});
+  const TimerChip({
+    super.key,
+    required this.seconds,
+    required this.answered,
+    this.expired = false,
+  });
   final int seconds;
   final bool answered;
+  // Soal ditutup oleh waktu habis: tampilkan "Habis", bukan 00:00 terkunci.
+  final bool expired;
 
   @override
   Widget build(BuildContext context) {
-    final urgent = !answered && seconds <= kTimerWarningSeconds;
-    final label = answered
+    final urgent = expired || (!answered && seconds <= kTimerWarningSeconds);
+    final label = expired
+        ? AppStrings.timerExpired
+        : answered
         ? AppStrings.locked
         : seconds == 0
         ? AppStrings.timerExpired
@@ -42,7 +51,7 @@ class TimerChip extends StatelessWidget {
             ),
           ),
           child: Text(
-            AppStrings.timerValue(seconds),
+            expired ? AppStrings.timerOut : AppStrings.timerValue(seconds),
             style: AppTextStyles.of(context).monoData.copyWith(
               color: urgent ? context.quizColors.wrong : scheme.onSurface,
             ),
