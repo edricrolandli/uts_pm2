@@ -17,12 +17,13 @@ class ResultGrid extends StatelessWidget {
     Widget row(List<String> values, {bool header = false}) => Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        for (final value in values)
+        for (var i = 0; i < values.length; i++)
           Expanded(
+            flex: i == 0 ? 2 : 1,
             child: Padding(
               padding: EdgeInsets.all(context.r.sm),
               child: Text(
-                value,
+                values[i],
                 style: header
                     ? AppTextStyles.of(context).monoLabel
                           .copyWith(color: p.paper)
@@ -44,13 +45,13 @@ class ResultGrid extends StatelessWidget {
           ColoredBox(
             color: p.ink,
             child: row([
-              AppStrings.nameLabel,
+              AppStrings.nimLabel,
               AppStrings.correctHeader,
               AppStrings.scoreHeader,
             ], header: true),
           ),
           row([
-            record.playerName,
+            record.nim,
             AppStrings.correctTotal(record.correct, record.total),
             AppStrings.scoreValue(record.percent),
           ]),

@@ -60,58 +60,65 @@ void main() {
     return provider;
   }
 
-  testWidgets(
-    'timeout persists null, advances once, and answer cancels countdown',
-    (tester) async {
-      final quiz = createQuiz();
-      await quiz.startNew('Dina');
-      quiz.resumeTimer();
-      await tester.pump(const Duration(seconds: 29));
-      expect(quiz.remainingSeconds, 1);
-      await tester.pump(const Duration(seconds: 1));
-      expect(quiz.currentIndex, 1);
-      expect(quiz.answers.first, isNull);
-      expect(quiz.remainingSeconds, 30);
-      expect((await storage.getSession(kQuestionBank))!.currentIndex, 1);
-      await quiz.selectAnswer(quiz.currentQuestion!.displayedCorrectIndex);
-      await tester.pump(const Duration(seconds: 35));
-      expect(quiz.currentIndex, 1);
-      expect(quiz.correctCount, 1);
-      await quiz.next();
-      await tester.pump(const Duration(seconds: 1));
-      expect(quiz.remainingSeconds, 29);
-      quiz.pauseTimer();
-    },
-  );
-
-  testWidgets('pause and resume reset from Home; discard cancels timer', (
+  testWidgets('timeout persists unanswered lock until explicit next', (
     tester,
   ) async {
     final quiz = createQuiz();
-    await quiz.startNew('Dina');
+    await quiz.startNew('Dina', '241401079');
     quiz.resumeTimer();
-    await tester.pump(const Duration(seconds: 10));
-    quiz.pauseTimer();
-    await tester.pump(const Duration(seconds: 60));
-    expect(quiz.remainingSeconds, 20);
-    await quiz.resume();
+    await tester.pump(const Duration(seconds: 29));
+    expect(quiz.remainingSeconds, 1);
+    await tester.pump(const Duration(seconds: 1));
+    expect(quiz.currentIndex, 0);
+    expect(quiz.session!.expired.first, isTrue);
+    expect(quiz.answers.first, isNull);
+    await quiz.next();
     expect(quiz.remainingSeconds, 30);
-    quiz.resumeTimer();
-    await quiz.discard();
-    await tester.pump(const Duration(seconds: 60));
-    expect(quiz.session, isNull);
-    expect(records, isEmpty);
+    expect((await storage.getSession(kQuestionBank))!.currentIndex, 1);
+    await quiz.selectAnswer(quiz.currentQuestion!.displayedCorrectIndex);
+    await tester.pump(const Duration(seconds: 35));
+    expect(quiz.currentIndex, 1);
+    expect(quiz.correctCount, 1);
+    await quiz.next();
+    await tester.pump(const Duration(seconds: 1));
+    expect(quiz.remainingSeconds, 29);
+    quiz.pauseTimer();
   });
 
-  testWidgets('last timeout finishes once and cancels timer', (tester) async {
+  testWidgets(
+    'pause and resume preserve remaining time from Home; discard cancels timer',
+    (tester) async {
+      final quiz = createQuiz();
+      await quiz.startNew('Dina', '241401079');
+      quiz.resumeTimer();
+      await tester.pump(const Duration(seconds: 10));
+      quiz.pauseTimer();
+      await tester.pump(const Duration(seconds: 60));
+      expect(quiz.remainingSeconds, 20);
+      await quiz.resume();
+      expect(quiz.remainingSeconds, 20);
+      quiz.resumeTimer();
+      await quiz.discard();
+      await tester.pump(const Duration(seconds: 60));
+      expect(quiz.session, isNull);
+      expect(records, isEmpty);
+    },
+  );
+
+  testWidgets('last timeout waits for explicit finish and records once', (
+    tester,
+  ) async {
     final quiz = createQuiz();
-    await quiz.startNew('Dina');
+    await quiz.startNew('Dina', '241401079');
     for (var i = 0; i < 9; i++) {
       await quiz.selectAnswer(quiz.currentQuestion!.displayedCorrectIndex);
       await quiz.next();
     }
     quiz.resumeTimer();
     await tester.pump(const Duration(seconds: 30));
+    expect(quiz.status, QuizStatus.inProgress);
+    expect(records, isEmpty);
+    await quiz.finish();
     expect(quiz.status, QuizStatus.finished);
     expect(records.single.correct, 9);
     expect(await storage.getSession(kQuestionBank), isNull);
@@ -124,7 +131,7 @@ void main() {
     tester,
   ) async {
     final quiz = createQuiz();
-    await quiz.startNew('Dina');
+    await quiz.startNew('Dina', '241401079');
     storage.fail = true;
     quiz.resumeTimer();
     await tester.pump(const Duration(seconds: 30));
@@ -134,7 +141,8 @@ void main() {
     expect(quiz.answers.first, isNull);
     storage.fail = false;
     await Future.wait([quiz.retryTimeout(), quiz.retryTimeout()]);
-    expect(quiz.currentIndex, 1);
+    expect(quiz.currentIndex, 0);
+    expect(quiz.isCurrentResolved, isTrue);
     expect(quiz.timerFailed, isFalse);
     quiz.pauseTimer();
   });
@@ -143,7 +151,7 @@ void main() {
     tester,
   ) async {
     final provider = QuizProvider(storage: storage, onFinished: (_) async {});
-    await provider.startNew('Dina');
+    await provider.startNew('Dina', '241401079');
     var notifications = 0;
     provider.addListener(() => notifications++);
     provider.resumeTimer();
@@ -158,7 +166,7 @@ void main() {
     'late answer cannot attach to next question during timeout save',
     (tester) async {
       final quiz = createQuiz();
-      await quiz.startNew('Dina');
+      await quiz.startNew('Dina', '241401079');
       storage.gate = Completer<void>();
       quiz.resumeTimer();
       await tester.pump(const Duration(seconds: 30));
@@ -166,7 +174,7 @@ void main() {
       storage.gate!.complete();
       await tester.pump();
       await lateAnswer;
-      expect(quiz.currentIndex, 1);
+      expect(quiz.currentIndex, 0);
       expect(quiz.answers.take(2), [null, null]);
       quiz.pauseTimer();
     },
@@ -176,32 +184,31 @@ void main() {
     'retry last timeout after failed clear does not duplicate history',
     (tester) async {
       final quiz = createQuiz();
-      await quiz.startNew('Dina');
+      await quiz.startNew('Dina', '241401079');
       for (var i = 0; i < 9; i++) {
+        await quiz.selectAnswer(0);
         await quiz.next();
       }
       storage.failClear = true;
       quiz.resumeTimer();
       await tester.pump(const Duration(seconds: 30));
-      expect(quiz.timerFailed, isTrue);
+      expect(quiz.isCurrentResolved, isTrue);
+      await expectLater(quiz.finish(), throwsStateError);
       expect(records, hasLength(1));
-      quiz.pauseTimer();
-      await quiz.resume();
-      expect(quiz.remainingSeconds, 0);
       storage.failClear = false;
-      quiz.resumeTimer();
-      await tester.pump();
+      await quiz.finish();
       expect(quiz.status, QuizStatus.finished);
       expect(records, hasLength(1));
     },
   );
 
-  testWidgets('last timeout automatically replaces Quiz with Result route', (
+  testWidgets('last timeout shows feedback then finish opens Result route', (
     tester,
   ) async {
     final quiz = createQuiz();
-    await quiz.startNew('Dina');
+    await quiz.startNew('Dina', '241401079');
     for (var i = 0; i < 9; i++) {
+      await quiz.selectAnswer(0);
       await quiz.next();
     }
     await tester.pumpWidget(
@@ -218,9 +225,14 @@ void main() {
     );
     await tester.pump(const Duration(seconds: 30));
     await tester.pumpAndSettle();
+    expect(find.byType(QuizScreen), findsOneWidget);
+    expect(find.text(AppStrings.wrong), findsOneWidget);
+    expect(records, isEmpty);
+    await tester.tap(find.text(AppStrings.finish));
+    await tester.pumpAndSettle();
     expect(find.text('Result test'), findsOneWidget);
     expect(find.byType(QuizScreen), findsNothing);
-    expect(records.single.correct, 0);
+    expect(records, hasLength(1));
     expect(tester.takeException(), isNull);
     await tester.pumpWidget(const SizedBox.shrink());
   });
@@ -254,8 +266,9 @@ void main() {
       onFinished: (_) => saving.future,
     );
     addTearDown(quiz.dispose);
-    await quiz.startNew('Dina');
+    await quiz.startNew('Dina', '241401079');
     for (var i = 0; i < 9; i++) {
+      await quiz.selectAnswer(0);
       await quiz.next();
     }
     await tester.pumpWidget(
@@ -271,9 +284,12 @@ void main() {
       ),
     );
     await tester.pump(const Duration(seconds: 30));
+    final finishing = quiz.finish();
+    await tester.pump();
     await tester.tap(find.byTooltip(AppStrings.exit));
     await tester.pumpAndSettle();
     saving.complete();
+    await finishing;
     await tester.pumpAndSettle();
     expect(find.text(AppStrings.exitTitle), findsOneWidget);
     await tester.tap(find.text(AppStrings.stay));
