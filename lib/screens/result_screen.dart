@@ -9,6 +9,7 @@ import '../providers/quiz_provider.dart';
 import '../widgets/common/responsive_body.dart';
 import '../widgets/common/mono_label.dart';
 import '../widgets/common/key_button.dart';
+import '../widgets/common/bottom_action_bar.dart';
 import '../widgets/quiz/segmented_progress.dart';
 import '../widgets/result/score_display.dart';
 import '../widgets/result/result_grid.dart';
@@ -44,21 +45,23 @@ class ResultScreen extends StatelessWidget {
             record.finishedAt.difference(session.startedAt),
           ),
         ),
-        SizedBox(height: context.r.lg),
-        KeyButton(
-          label: AppStrings.seeReview,
-          onPressed: () => Navigator.of(context).pushNamed(AppRoutes.review),
-        ),
-        SizedBox(height: context.r.sm),
-        KeyButton(
-          label: AppStrings.returnHome,
-          secondary: true,
-          onPressed: home,
-        ),
       ],
     );
     return Scaffold(
       body: ResponsiveBody(
+        bottomBar: BottomActionBar(
+          primary: KeyButton(
+            label: AppStrings.seeReview,
+            onPressed: () =>
+                Navigator.of(context)
+                    .pushNamed(AppRoutes.review, arguments: record),
+          ),
+          secondary: KeyButton(
+            label: AppStrings.returnHome,
+            secondary: true,
+            onPressed: home,
+          ),
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

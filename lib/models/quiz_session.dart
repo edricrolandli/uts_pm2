@@ -5,12 +5,21 @@ import 'session_question.dart';
 class QuizSession {
   QuizSession({
     required this.playerName,
+    required this.nim,
+    List<bool>? expired,
     required List<SessionQuestion> items,
     required List<int?> answers,
     required this.currentIndex,
     required this.startedAt,
   }) : items = List.unmodifiable(items),
-       answers = List.unmodifiable(answers) {
+       answers = List.unmodifiable(answers),
+       expired = List.unmodifiable(
+         expired ?? List.filled(items.length, false),
+       ) {
+    if (!RegExp(r'^\d{9}$').hasMatch(nim) ||
+        this.expired.length != items.length) {
+      throw const FormatException('NIM atau status waktu tidak valid.');
+    }
     if (playerName.trim() != playerName ||
         playerName.runes.length < kMinPlayerNameLength ||
         playerName.runes.length > kMaxPlayerNameLength ||
@@ -32,6 +41,8 @@ class QuizSession {
     // Pulihkan urutan tersimpan agar jawaban tetap menunjuk opsi yang sama.
     return QuizSession(
       playerName: json['playerName'] as String,
+      nim: json['nim'] as String,
+      expired: (json['expired'] as List).cast<bool>(),
       items: (json['items'] as List)
           .map(
             (item) => SessionQuestion.fromJson(
@@ -47,13 +58,21 @@ class QuizSession {
   }
 
   final String playerName;
+  final String nim;
+  final List<bool> expired;
   final List<SessionQuestion> items;
   final List<int?> answers;
   final int currentIndex;
   final DateTime startedAt;
 
-  QuizSession copyWith({List<int?>? answers, int? currentIndex}) => QuizSession(
+  QuizSession copyWith({
+    List<int?>? answers,
+    List<bool>? expired,
+    int? currentIndex,
+  }) => QuizSession(
     playerName: playerName,
+    nim: nim,
+    expired: expired ?? this.expired,
     items: items,
     answers: answers ?? this.answers,
     currentIndex: currentIndex ?? this.currentIndex,
@@ -62,6 +81,8 @@ class QuizSession {
 
   Map<String, dynamic> toJson() => {
     'playerName': playerName,
+    'nim': nim,
+    'expired': expired,
     'items': items.map((item) => item.toJson()).toList(),
     'answers': answers,
     'currentIndex': currentIndex,

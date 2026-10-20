@@ -29,7 +29,7 @@ class ResumeCard extends StatelessWidget {
         SizedBox(height: context.r.sm),
         Text(
           AppStrings.resumeDetail(
-            session.playerName,
+            '${session.playerName} (${session.nim})',
             session.currentIndex,
             session.items.length,
           ),

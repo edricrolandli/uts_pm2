@@ -10,6 +10,7 @@ import 'package:uts_pm2/models/session_question.dart';
 
 void main() {
   QuizSession sample() => QuizSession(
+    nim: '241401079',
     playerName: 'Dina',
     items: kQuestionBank.reversed
         .take(10)
@@ -42,10 +43,10 @@ void main() {
       kQuestionBank,
     );
     expect(restored.toJson(), original.toJson());
-    expect(restored.items.first.question, same(kQuestionBank.last));
+    expect(restored.items.first.question.text, kQuestionBank.last.text);
     expect(
       restored.items.first.toJson().keys,
-      unorderedEquals(['questionId', 'optionOrder']),
+      unorderedEquals(['questionId', 'optionOrder', 'question']),
     );
   });
 
@@ -114,9 +115,13 @@ void main() {
 
   test('ScoreRecord JSON dan batas grade', () {
     final score = ScoreRecord(
-      playerName: 'Dina',
-      correct: 7,
-      total: 10,
+      session: sample().copyWith(
+        answers: List.generate(
+          10,
+          (i) => i < 7 ? sample().items[i].displayedCorrectIndex : null,
+        ),
+        expired: List.generate(10, (i) => i >= 7),
+      ),
       finishedAt: DateTime.utc(2026, 10, 16),
     );
     expect(ScoreRecord.fromJson(score.toJson()).toJson(), score.toJson());

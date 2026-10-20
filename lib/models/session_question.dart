@@ -30,7 +30,18 @@ class SessionQuestion {
       throw FormatException('ID soal tidak ditemukan: ${json['questionId']}');
     }
     return SessionQuestion(
-      question: question,
+      question: json['question'] == null
+          ? question
+          : Question(
+              id: question.id,
+              text: (json['question'] as Map)['text'] as String,
+              codeSnippet: (json['question'] as Map)['codeSnippet'] as String?,
+              options: List<String>.unmodifiable(
+                (json['question'] as Map)['options'] as List,
+              ),
+              correctIndex: (json['question'] as Map)['correctIndex'] as int,
+              explanation: (json['question'] as Map)['explanation'] as String,
+            ),
       optionOrder: (json['optionOrder'] as List).cast<int>(),
     );
   }
@@ -44,6 +55,13 @@ class SessionQuestion {
 
   Map<String, dynamic> toJson() => {
     'questionId': question.id,
+    'question': {
+      'text': question.text,
+      'codeSnippet': question.codeSnippet,
+      'options': question.options,
+      'correctIndex': question.correctIndex,
+      'explanation': question.explanation,
+    },
     'optionOrder': optionOrder,
   };
 }

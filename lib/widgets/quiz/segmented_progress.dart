@@ -11,8 +11,10 @@ class SegmentedProgress extends StatelessWidget {
     super.key,
     required this.session,
     this.result = false,
+    this.animate = true,
   });
   final bool result;
+  final bool animate;
   final QuizSession session;
   @override
   Widget build(BuildContext context) {
@@ -25,7 +27,7 @@ class SegmentedProgress extends StatelessWidget {
       final answer = session.answers[i];
       if (answer != null) {
         answer == session.items[i].displayedCorrectIndex ? correct++ : wrong++;
-      } else if (result || i < session.currentIndex) {
+      } else if (result || session.expired[i] || i < session.currentIndex) {
         wrong++;
       }
     }
@@ -43,8 +45,8 @@ class SegmentedProgress extends StatelessWidget {
               if (i != 0) SizedBox(width: context.r.xs),
               Expanded(
                 child: TweenAnimationBuilder<double>(
-                  tween: Tween(begin: result ? 0 : 1, end: 1),
-                  duration: result
+                  tween: Tween(begin: result && animate ? 0 : 1, end: 1),
+                  duration: result && animate
                       ? AppMotion.of(context).segmentStagger * (i + 1)
                       : AppTokens.noMotion,
                   builder: (context, value, child) => Opacity(
@@ -61,7 +63,9 @@ class SegmentedProgress extends StatelessWidget {
                                     session.items[i].displayedCorrectIndex
                                 ? qc.correct
                                 : qc.wrong
-                          : result || i < session.currentIndex
+                          : result ||
+                                session.expired[i] ||
+                                i < session.currentIndex
                           ? qc.wrong
                           : i == session.currentIndex
                           ? scheme.primary
