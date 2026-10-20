@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../core/constants/app_constants.dart';
 import '../../core/constants/app_strings.dart';
@@ -39,6 +40,9 @@ class NameInputField extends StatelessWidget {
         SizedBox(height: context.r.sm),
         TextFormField(
           controller: controller,
+          inputFormatters: [
+            LengthLimitingTextInputFormatter(kMaxPlayerNameLength),
+          ],
           enabled: enabled,
           validator: validate,
           autovalidateMode: AutovalidateMode.onUserInteraction,

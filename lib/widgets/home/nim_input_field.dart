@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
+import '../../core/constants/app_constants.dart';
 import '../../core/constants/app_strings.dart';
 import '../../core/responsive/responsive.dart';
 import '../../core/theme/app_text_styles.dart';
@@ -21,7 +23,7 @@ class NimInputField extends StatelessWidget {
     if (nim.isNotEmpty && !RegExp(r'^\d+$').hasMatch(nim)) {
       return AppStrings.nimDigits;
     }
-    if (nim.length != 9) return AppStrings.nimLength;
+    if (nim.length != kNimLength) return AppStrings.nimLength;
     return null;
   }
 
@@ -41,6 +43,11 @@ class NimInputField extends StatelessWidget {
         TextFormField(
           controller: controller,
           keyboardType: TextInputType.number,
+          // Cegah huruf dan digit ke-10 sejak diketik, bukan hanya lewat error.
+          inputFormatters: [
+            FilteringTextInputFormatter.digitsOnly,
+            LengthLimitingTextInputFormatter(kNimLength),
+          ],
           enabled: enabled,
           validator: validate,
           autovalidateMode: AutovalidateMode.onUserInteraction,

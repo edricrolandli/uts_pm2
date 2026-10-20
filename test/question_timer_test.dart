@@ -254,6 +254,18 @@ void main() {
     expect(find.text('00:04'), findsOneWidget);
     await pump(0);
     expect(find.bySemanticsLabel(AppStrings.timerExpired), findsOneWidget);
+    // Setelah soal ditutup oleh waktu habis, chip tidak lagi menyebut terkunci.
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.dark(),
+        home: const Scaffold(
+          body: TimerChip(seconds: 0, answered: true, expired: true),
+        ),
+      ),
+    );
+    expect(find.text(AppStrings.timerOut), findsOneWidget);
+    expect(find.bySemanticsLabel(AppStrings.timerExpired), findsOneWidget);
+    expect(find.bySemanticsLabel(AppStrings.locked), findsNothing);
     handle.dispose();
   });
 

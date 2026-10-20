@@ -10,6 +10,8 @@ import '../models/score_record.dart';
 import '../widgets/common/bottom_action_bar.dart';
 import '../widgets/common/responsive_body.dart';
 import '../widgets/common/key_button.dart';
+import '../widgets/common/mono_label.dart';
+import '../widgets/result/result_grid.dart';
 import '../widgets/result/review_item_card.dart';
 
 class ReviewScreen extends StatefulWidget {
@@ -35,6 +37,8 @@ class _ReviewScreenState extends State<ReviewScreen> {
         )
         .toList();
     if (_wrongOnly) indices.removeWhere((i) => !wrong.contains(i));
+    // Detail dibuka dari riwayat, jadi kapan dan berapa nilainya ikut tampil.
+    final summary = widget.detail ? widget.record : null;
     final scheme = Theme.of(context).colorScheme;
     final g = AppGeometry.of(context);
     Widget item(int index) => ReviewItemCard(
@@ -48,18 +52,25 @@ class _ReviewScreenState extends State<ReviewScreen> {
         bottomBar: BottomActionBar(
           primary: KeyButton(
             label: AppStrings.back,
-            secondary: !widget.detail,
             onPressed: () => Navigator.pop(context),
           ),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            if (summary != null) ...[
+              MonoLabel(AppStrings.historyDate(summary.finishedAt)),
+              SizedBox(height: context.r.sm),
+            ],
             Text(
               widget.detail ? AppStrings.attemptDetail : AppStrings.review,
               style: AppTextStyles.of(context).headline,
             ),
             SizedBox(height: context.r.md),
+            if (summary != null) ...[
+              ResultGrid(record: summary),
+              SizedBox(height: context.r.md),
+            ],
             SegmentedButton<bool>(
               segments: [
                 const ButtonSegment(
