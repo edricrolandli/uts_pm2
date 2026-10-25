@@ -7,5 +7,4 @@ abstract final class AssetPaths {
   static const sun = 'assets/icons/sun.svg';
   static const moon = 'assets/icons/moon.svg';
   static const resume = 'assets/icons/arrow-counter-clockwise.svg';
-  static const history = 'assets/icons/list.svg';
 }

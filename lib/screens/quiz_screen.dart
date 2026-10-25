@@ -17,7 +17,7 @@ import '../widgets/quiz/question_card.dart';
 import '../widgets/quiz/option_tile.dart';
 import '../widgets/quiz/explanation_panel.dart';
 import '../widgets/quiz/timer_chip.dart';
-import 'pending_screen.dart';
+import 'no_session_screen.dart';
 
 class QuizScreen extends StatefulWidget {
   const QuizScreen({super.key});
@@ -155,7 +155,7 @@ class _QuizScreenState extends State<QuizScreen> with WidgetsBindingObserver {
       });
     }
     if (session == null) {
-      return PendingScreen(
+      return NoSessionScreen(
         title: AppStrings.appName,
         message: AppStrings.noSession,
         onReturn: () => Navigator.pop(context),

@@ -85,12 +85,8 @@ abstract final class AppStrings {
   static const stay = 'Tetap main';
   static const exit = 'Keluar';
   static const returnHome = 'Kembali ke awal';
-  static const result = 'Hasil';
   static const review = 'Review';
   static const historyTitle = 'Riwayat skor';
-  static const upcoming = 'Halaman ini belum tersedia.';
-  static const quizUpcoming =
-      'Kuis sedang disiapkan. Progres awalmu sudah tersimpan.';
   static const saveFailed = 'Belum berhasil menyimpan. Coba lagi.';
   static const noSession = 'Belum ada kuis aktif. Mulai dari halaman awal.';
   static const darkMode = 'Gunakan tema gelap';
