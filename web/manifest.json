@@ -1,11 +1,11 @@
 {
-    "name": "uts_pm2",
-    "short_name": "uts_pm2",
+    "name": "laby_rinth",
+    "short_name": "laby_rinth",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "Kuis interaktif materi Lab Basis Data dengan review jawaban dan riwayat skor.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

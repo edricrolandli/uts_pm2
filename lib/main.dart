@@ -22,7 +22,7 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (_) => theme),
         ChangeNotifierProvider(create: (_) => quiz),
       ],
-      child: const QueryQuestApp(),
+      child: const LabyrinthApp(),
     ),
   );
 }

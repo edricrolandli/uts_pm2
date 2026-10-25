@@ -13,17 +13,20 @@ class ConfirmDialog extends StatelessWidget {
     required this.message,
     required this.cancelLabel,
     required this.confirmLabel,
+    this.destructive = false,
   });
   final String title;
   final String message;
   final String cancelLabel;
   final String confirmLabel;
+  final bool destructive;
   static Future<bool> ask(
     BuildContext context, {
     required String title,
     required String message,
     required String cancelLabel,
     required String confirmLabel,
+    bool destructive = false,
   }) async =>
       await showDialog<bool>(
         context: context,
@@ -32,6 +35,7 @@ class ConfirmDialog extends StatelessWidget {
           message: message,
           cancelLabel: cancelLabel,
           confirmLabel: confirmLabel,
+          destructive: destructive,
         ),
       ) ??
       false;
@@ -54,6 +58,8 @@ class ConfirmDialog extends StatelessWidget {
             SizedBox(height: context.r.lg),
             KeyButton(
               label: confirmLabel,
+              destructive: destructive,
+              secondary: destructive,
               onPressed: () => Navigator.pop(context, true),
             ),
             SizedBox(height: context.r.sm),
