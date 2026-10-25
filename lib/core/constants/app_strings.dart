@@ -57,7 +57,7 @@ abstract final class AppStrings {
     return '${twoDigits.format(seconds ~/ 60)}:${twoDigits.format(seconds % 60)}';
   }
 
-  static const appName = 'QueryQuest';
+  static const appName = 'laby_rinth';
   static const homeEyebrow = 'LAB BASIS DATA';
   static const homeHeadline = 'Seberapa kenal kamu sama tabel dan query?';
   static const nameLabel = 'NAMA';
