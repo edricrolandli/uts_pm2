@@ -1,13 +1,8 @@
 import 'package:intl/intl.dart';
 
-import 'app_constants.dart';
-
 abstract final class AppStrings {
   static const identityEyebrow = 'IDENTITAS';
-  static const identityTitle = 'Isi dulu nama dan NIM-mu.';
-  static const quizRules =
-      '$kQuestionsPerSession SOAL · $kQuestionSeconds DETIK PER SOAL · '
-      'BISA DILANJUTKAN';
+  static const identityTitle = 'Isi dulu nama dan NIM-⁠mu.';
   static const nimLabel = 'NIM';
   static const nimHint = 'mis. 241401079';
   static const nimDigits = 'NIM cuma angka.';
@@ -17,7 +12,7 @@ abstract final class AppStrings {
   static const attemptDetail = 'Detail pengerjaan';
   static String nimIdentity(String nim) => 'NIM $nim';
 
-  static const splashQuery = 'SELECT semangat\nFROM mahasiswa;';
+  static const splashTagline = '#SemangatIKLC\n#SemangatMengajar';
   static const cursor = '_';
   static const timerReady = 'Waktu menjawab 30 detik';
   static const timerWarning = 'Waktu tersisa 5 detik';
@@ -62,7 +57,7 @@ abstract final class AppStrings {
     return '${twoDigits.format(seconds ~/ 60)}:${twoDigits.format(seconds % 60)}';
   }
 
-  static const appName = 'QueryQuest';
+  static const appName = 'laby_rinth';
   static const homeEyebrow = 'LAB BASIS DATA';
   static const homeHeadline = 'Seberapa kenal kamu sama tabel dan query?';
   static const nameLabel = 'NAMA';
@@ -90,12 +85,8 @@ abstract final class AppStrings {
   static const stay = 'Tetap main';
   static const exit = 'Keluar';
   static const returnHome = 'Kembali ke awal';
-  static const result = 'Hasil';
   static const review = 'Review';
   static const historyTitle = 'Riwayat skor';
-  static const upcoming = 'Halaman ini belum tersedia.';
-  static const quizUpcoming =
-      'Kuis sedang disiapkan. Progres awalmu sudah tersimpan.';
   static const saveFailed = 'Belum berhasil menyimpan. Coba lagi.';
   static const noSession = 'Belum ada kuis aktif. Mulai dari halaman awal.';
   static const darkMode = 'Gunakan tema gelap';

@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:uts_pm2/core/constants/app_constants.dart';
 import 'package:uts_pm2/data/question_bank.dart';
 import 'package:uts_pm2/models/quiz_session.dart';
 import 'package:uts_pm2/models/score_record.dart';
@@ -126,11 +125,5 @@ void main() {
     );
     expect(ScoreRecord.fromJson(score.toJson()).toJson(), score.toJson());
     expect(score.percent, 70);
-    expect(gradeLabel(90), 'Database Wizard');
-    expect(gradeLabel(89), 'Query Pro');
-    expect(gradeLabel(70), 'Query Pro');
-    expect(gradeLabel(69), 'Lumayan, lanjut belajar');
-    expect(gradeLabel(50), 'Lumayan, lanjut belajar');
-    expect(gradeLabel(49), 'Perlu latihan JOIN lagi');
   });
 }

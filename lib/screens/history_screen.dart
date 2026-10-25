@@ -25,6 +25,7 @@ class HistoryScreen extends StatelessWidget {
       message: AppStrings.clearHistoryMessage,
       cancelLabel: AppStrings.cancel,
       confirmLabel: AppStrings.delete,
+      destructive: true,
     );
     if (!confirmed || !context.mounted) return;
     try {
@@ -45,6 +46,7 @@ class HistoryScreen extends StatelessWidget {
         bottomBar: BottomActionBar(
           primary: KeyButton(
             label: AppStrings.back,
+            secondary: true,
             onPressed: () => Navigator.pop(context),
           ),
           secondary: records.isEmpty
