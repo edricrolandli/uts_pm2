@@ -44,6 +44,7 @@ class _HomeScreenState extends State<HomeScreen> {
           message: AppStrings.newMessage,
           cancelLabel: AppStrings.cancel,
           confirmLabel: AppStrings.startNew,
+          destructive: true,
         );
         if (!mounted || !confirmed) return;
       }
@@ -70,6 +71,7 @@ class _HomeScreenState extends State<HomeScreen> {
           message: AppStrings.discardMessage,
           cancelLabel: AppStrings.cancel,
           confirmLabel: AppStrings.discard,
+          destructive: true,
         );
         if (!mounted || !confirmed) return;
         await quiz.discard();
@@ -162,6 +164,7 @@ class _HomeScreenState extends State<HomeScreen> {
       primary: KeyButton(
         label: AppStrings.start,
         icon: AssetPaths.arrow,
+        secondary: saved != null,
         onPressed: _busy ? null : _start,
       ),
     );
