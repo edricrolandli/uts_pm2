@@ -13,7 +13,7 @@ import '../widgets/common/bottom_action_bar.dart';
 import '../widgets/quiz/segmented_progress.dart';
 import '../widgets/result/score_display.dart';
 import '../widgets/result/result_grid.dart';
-import 'pending_screen.dart';
+import 'no_session_screen.dart';
 
 class ResultScreen extends StatelessWidget {
   const ResultScreen({super.key});
@@ -25,7 +25,7 @@ class ResultScreen extends StatelessWidget {
     void home() =>
         Navigator.of(context).popUntil(ModalRoute.withName(AppRoutes.home));
     if (record == null || session == null) {
-      return PendingScreen(title: AppStrings.noSession, onReturn: home);
+      return NoSessionScreen(title: AppStrings.noSession, onReturn: home);
     }
     final score = Column(
       crossAxisAlignment: CrossAxisAlignment.start,

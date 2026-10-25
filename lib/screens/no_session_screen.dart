@@ -7,15 +7,15 @@ import '../widgets/common/responsive_body.dart';
 import '../widgets/common/key_button.dart';
 import '../widgets/common/bottom_action_bar.dart';
 
-class PendingScreen extends StatelessWidget {
-  const PendingScreen({
+class NoSessionScreen extends StatelessWidget {
+  const NoSessionScreen({
     super.key,
     required this.title,
-    this.message = AppStrings.upcoming,
+    this.message,
     required this.onReturn,
   });
   final String title;
-  final String message;
+  final String? message;
   final VoidCallback onReturn;
   @override
   Widget build(BuildContext context) => Scaffold(
@@ -27,8 +27,10 @@ class PendingScreen extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(title, style: AppTextStyles.of(context).headline),
-          SizedBox(height: context.r.md),
-          Text(message, style: AppTextStyles.of(context).body),
+          if (message != null) ...[
+            SizedBox(height: context.r.md),
+            Text(message!, style: AppTextStyles.of(context).body),
+          ],
           SizedBox(height: context.r.lg),
         ],
       ),
