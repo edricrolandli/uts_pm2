@@ -7,8 +7,8 @@ import 'core/theme/app_theme.dart';
 import 'core/theme/app_tokens.dart';
 import 'providers/theme_provider.dart';
 
-class QueryQuestApp extends StatelessWidget {
-  const QueryQuestApp({super.key});
+class LabyrinthApp extends StatelessWidget {
+  const LabyrinthApp({super.key});
   @override
   Widget build(BuildContext context) => MediaQuery.fromView(
     view: View.of(context),

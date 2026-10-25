@@ -39,7 +39,7 @@ void main() {
             ChangeNotifierProvider.value(value: history),
             ChangeNotifierProvider.value(value: theme),
           ],
-          child: const QueryQuestApp(),
+          child: const LabyrinthApp(),
         ),
       );
       await tester.pumpAndSettle();

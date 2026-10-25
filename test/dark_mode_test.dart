@@ -91,7 +91,7 @@ void main() {
           ChangeNotifierProvider.value(value: history),
           ChangeNotifierProvider.value(value: quiz),
         ],
-        child: const QueryQuestApp(),
+        child: const LabyrinthApp(),
       ),
     );
     await tester.pumpAndSettle();
