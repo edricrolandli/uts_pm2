@@ -51,6 +51,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
         bottomBar: BottomActionBar(
           primary: KeyButton(
             label: AppStrings.back,
+            secondary: true,
             onPressed: () => Navigator.pop(context),
           ),
         ),
