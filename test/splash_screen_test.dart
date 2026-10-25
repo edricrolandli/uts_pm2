@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:uts_pm2/core/constants/app_strings.dart';
 import 'package:uts_pm2/core/routes/app_routes.dart';
@@ -24,9 +25,11 @@ void main() {
           },
         ),
       );
+      final screen = tester.view.physicalSize / tester.view.devicePixelRatio;
+      expect(tester.getCenter(find.byType(SvgPicture)).dx, screen.width / 2);
       if (!reduced) {
         await tester.pump(const Duration(milliseconds: 280));
-        expect(find.text('SELECT sem_'), findsOneWidget);
+        expect(find.text('#SemangatI_'), findsOneWidget);
         expect(find.text('Home test'), findsNothing);
       }
       await tester.pumpAndSettle();
@@ -47,7 +50,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 100));
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pump(const Duration(seconds: 2));
-    expect(find.text(AppStrings.splashQuery), findsNothing);
+    expect(find.text(AppStrings.splashTagline), findsNothing);
     expect(tester.takeException(), isNull);
   });
 }

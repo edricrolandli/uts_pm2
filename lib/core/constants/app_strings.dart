@@ -17,7 +17,7 @@ abstract final class AppStrings {
   static const attemptDetail = 'Detail pengerjaan';
   static String nimIdentity(String nim) => 'NIM $nim';
 
-  static const splashQuery = 'SELECT semangat\nFROM mahasiswa;';
+  static const splashTagline = '#SemangatIKLC\n#SemangatMengajar';
   static const cursor = '_';
   static const timerReady = 'Waktu menjawab 30 detik';
   static const timerWarning = 'Waktu tersisa 5 detik';
