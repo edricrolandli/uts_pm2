@@ -59,7 +59,7 @@ abstract final class AppStrings {
 
   static const appName = 'laby_rinth';
   static const homeEyebrow = 'LAB BASIS DATA';
-  static const homeHeadline = 'Seberapa kenal kamu sama tabel dan query?';
+  static const homeHeadline = 'Seberapa kenal kamu sama SQL?';
   static const nameLabel = 'NAMA';
   static const nameHint = 'mis. Budi';
   static const nameMin = 'Nama minimal 2 karakter.';
